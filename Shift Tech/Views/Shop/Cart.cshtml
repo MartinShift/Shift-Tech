@@ -1,0 +1,214 @@
+﻿@model Shift_Tech.DbModels.Cart;
+@{
+    Layout = "_Layout";
+    var subtotal = Math.Floor(Model.Products.Sum(x => x.ProductCount * x.Product.Price)*100) / 100;
+    double shippingprice = Math.Floor(subtotal / 30 * 100)/ 100;
+
+    if(shippingprice >=1500)
+    {
+        shippingprice = 0;
+    }
+
+}
+@using Resources;
+@section styles {
+
+}
+
+@section Scripts {
+
+}
+<!DOCTYPE html>
+<html lang="en">
+
+<body>
+
+    @section header {
+
+    }
+
+    <!-- Cart Start -->
+    <div class="container-fluid">
+        <div class="row px-xl-5">
+            <div class="col-lg-8 table-responsive mb-5">
+                <table class="table table-light table-borderless table-hover text-center mb-0">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>@Resource.Products</th>
+                            <th>@Resource.Price</th>
+                            <th>@Resource.Quantity</th>
+                            <th>@Resource.Total</th>
+                            <th>@Resource.Remove</th>
+                        </tr>
+                    </thead>
+                    <tbody class="align-middle">
+                        @foreach(var product in Model.Products)
+                        {
+                        <tr>
+                                <td class="align-middle"><img src="@product.Product.MainImage?.Url()" alt="" style="width: 50px;">@product.Product.Name</td>
+                                <td id="initialPrice-@product.Id" class="align-middle">$@product.Product.Price</td>
+                             <td class="align-middle">
+                                    <div class="input-group quantity mx-auto" style="width: 100px;">
+                                        <div  class="input-group-btn">
+                                            <button onclick="minusOne(@product.Id)" class="btn btn-sm btn-primary btn-minus">
+                                                <i class="fa fa-minus"></i>
+                                            </button>
+                                        </div>
+                                        <input onchange="handleInputChange(@product.Id)" id="Product-Count-@product.Id" type="text" class="form-control form-control-sm bg-secondary border-0 text-center" value="@product.ProductCount">
+                                        <div class="input-group-btn">
+                                            <button onclick="plusOne(@product.Id)" class="btn btn-sm btn-primary btn-plus">
+                                                <i class="fa fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </td>
+                            <td id="totalPrice-@product.Id" class="align-middle">$@(Math.Floor((product.Product.Price * product.ProductCount)*100)/100)</td>
+                            <td class="align-middle"><button onclick="removeFromCart(@product.Id)" class="btn btn-sm btn-danger"><i class="fa fa-times"></i></button></td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-lg-4">
+                <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">@Resource.CartSummary</span></h5>
+                <div class="bg-light p-30 mb-5">
+                    <div class="border-bottom pb-2">
+                        <div class="d-flex justify-content-between mb-3">
+                            <h6>@Resource.Subtotal</h6>
+                            <h6 id="SubTotal">$@subtotal</h6>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <h6 class="font-weight-medium">@Resource.Shipping</h6>
+                            <h6 id="Shipping" class="font-weight-medium">$@shippingprice</h6>
+                        </div>
+                    </div>
+                    <div class="pt-2">
+                        <div class="d-flex justify-content-between mt-2">
+                            <h5>@Resource.Total</h5>
+                            <h5 id="Total">$@(Math.Floor((subtotal + shippingprice)*100)/100)</h5>
+                        </div>
+                        @if (Model.Products.Count > 0)
+                        {
+                            <a href="@Url.Action("Index", "Checkout")" class="btn btn-block btn-primary font-weight-bold my-3 py-3">@Resource.ProceedToCheckout</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @section footer {
+
+    }
+
+</body>
+
+</html>
+<script>
+    function updatePrice(productId,productCount)
+    {
+        var oldPrice = document.getElementById(`totalPrice-${productId}`);
+        var oldTotalPrice =  document.getElementById("SubTotal");
+
+        var oldPriceText = oldPrice.textContent.replace('$', '').replace(',', '.');
+        var oldpricevalue = parseFloat(oldPriceText);
+        var newprice = parseFloat(document.getElementById(`initialPrice-${productId}`).textContent.replace('$', '').replace(',', '.')) * (productCount);
+        var totalprice = parseFloat(oldTotalPrice.textContent.replace('$', '').replace(',', '.'))
+        console.log(oldPrice)
+        console.log(oldPrice.textContent);
+        console.log(oldpricevalue);
+        console.log(newprice);
+        var minus = newprice - oldpricevalue;
+        totalprice += minus;
+        oldPrice.textContent = "$" + Math.floor(newprice * 100) /100;
+        oldTotalPrice.textContent = "$" + Math.floor(totalprice * 100) / 100;
+        var Shipping = document.getElementById("Shipping");
+        Shipping.textContent = "$" + Math.floor((totalprice / 30)*100)/100;
+        document.getElementById("Total").textContent = "$" + Math.floor((totalprice + (totalprice / 30)) * 100) / 100;
+
+    }
+    function removeFromCart(productId)
+    {
+        fetch("/Shop/RemoveFromCart", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(
+                productId)
+        })
+            .then(response => response.json())
+            .then(data => {
+               location.reload();
+            })
+            .catch(error => {
+                console.error("Fetch error:", error);
+            });
+    }
+    function handleInputChange(productId) {
+        var count = parseInt(document.getElementById("Product-Count").value)
+        fetch("/Shop/CartItemCountChange", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(
+                {
+                productId: productId,
+                productAmount: count
+                })
+        })
+            .then(response => response.json())
+            .then(data => {
+                updatePrice(productId, count)
+            })
+            .catch(error => {
+                console.error("Fetch error:", error);
+            });
+    }
+    function plusOne(productId) {
+
+        var count = parseInt(document.getElementById(`Product-Count-${productId}`).value)
+        fetch("/Shop/CartItemCountChange", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(
+                {
+                    productId: productId,
+                    productAmount: count+1
+                })
+        })
+            .then(response => response.json())
+            .then(data => {
+      
+                updatePrice(productId, count+1)
+            })
+            .catch(error => {
+                console.error("Fetch error:", error);
+            });
+    }
+    function minusOne(productId) {
+
+        var count = parseInt(document.getElementById(`Product-Count-${productId}`).value)
+        fetch("/Shop/CartItemCountChange", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(
+                {
+                    productId: productId,
+                    productAmount: count - 1
+                })
+        })
+            .then(response => response.json())
+            .then(data => {
+                updatePrice(productId, count - 1)
+            })
+            .catch(error => {
+                console.error("Fetch error:", error);
+            });
+    }
+</script>

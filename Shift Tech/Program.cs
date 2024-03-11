@@ -1,0 +1,1 @@
+Shift_Tech.Models.Startup.HostBuilder.CreateHostBuilder(args).Build().Run();

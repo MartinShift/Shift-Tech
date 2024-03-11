@@ -1,0 +1,198 @@
+﻿@using Shift_Tech.DbModels
+@using System.Globalization
+@{
+    ViewData["Title"] = "Edit Product";
+    Layout = "_AdminLayout";
+}
+
+@using Resources;
+@section Styles{
+
+}
+@section scripts {
+    <script>
+        document.getElementById("SaleToggle").addEventListener("change", function () {
+            const salePriceField = document.getElementById("PreviousPrice");
+            salePriceField.readOnly = !this.checked;
+            salePriceField.value = document.getElementById("CurrentPrice").value;
+        });
+        function saveProduct() {
+            var productId = "@Model.Product.Id";
+            var productName = $("#ProductName").val();
+            var shortDescription = $("#ShortDescription").val();
+            var fullDescription = $("#FullDescription").val();
+            var inStock = $("#InStock").val();
+            var category = $("#Category").val();
+            var price = $("#CurrentPrice").val().replace(',', '.');
+            var previousPrice = $("#PreviousPrice").val().replace(',', '.');
+            if (previousPrice < price) { previousPrice == price; }
+            var updatedProduct = {
+                Id: productId,
+                Name: productName,
+                ShortDescription: shortDescription,
+                Description: fullDescription,
+                InStock: inStock,
+                CategoryId: category,
+                Price: price,
+                PreviousPrice: previousPrice,
+            };
+
+            fetch("/Product/UpdateProduct", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(updatedProduct)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.href = "/Product/EditProducts";
+                    }
+                })
+                .catch(error => {
+                    Swal.fire({
+                        title: 'Network Error',
+                        text: error.message,
+                        icon: 'error'
+                    });
+                });
+        }
+        function confirmDelete(productId, productName) {
+            Swal.fire({
+                title: '@Resource.DeleteProduct',
+                text: `@Resource.DeleteProductConfirm'${productName}'?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: '@Resource.Delete',
+                showLoaderOnConfirm: true,
+                preConfirm: () => {
+                    return fetch("/Product/DeleteProduct", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(productId)
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                Swal.fire({
+                                    title: '@Resource.Success',
+                                    icon: 'success'
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Error',
+                                    text: response.statusText,
+                                    icon: 'error'
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire({
+                                title: 'Network Error',
+                                text: error.message,
+                                icon: 'error'
+                            });
+                        });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            });
+        }
+        $("input.image-upload").on("change", (e) => {
+            const fileInput = e.target;
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+            const container = fileInput.closest('.product-detail-form');
+            const index = fileInput.getAttribute("data-id");
+            fetch(`/Product/Uploads/${@Model.Product.Id}`, {
+                method: "post",
+                body: formData
+            }).then(r => r.json())
+                .then(data => {
+                    Swal.fire({
+                        title: '@Resource.ImageAdded',
+                        icon: 'success'
+                    });
+                });
+        });
+        $("input.multiple-upload").on("change", (e) => {
+            const fileInput = e.target;
+            const formData = new FormData();
+            for (let i = 0; i < fileInput.files.length; i++) {
+                formData.append("files", fileInput.files[i]);
+            }
+            fetch(`/Product/UploadsMultiple/${@Model.Product.Id}`, {
+                method: "post",
+                body: formData
+            }).then(r => r.json())
+                .then(data => {
+                    Swal.fire({
+                        title: '@Resource.ImagesAdded',
+                        icon: 'success'
+                    });
+                });
+        });
+
+    </script>
+}
+@section header {
+
+}
+<div class="card mb-4 product-detail-form">
+    <div class="card-body">
+        <h5 class="card-title">@Model.Product.Name</h5>
+        <div class="form-group">
+            <label for="ProductName">@Resource.Name</label>
+            <input type="text" class="form-control" id="ProductName" name="ProductName" value="@Model.Product.Name" required>
+        </div>
+        <div class="form-group">
+            <label for="ShortDescription">@Resource.ShortDescription</label>
+            <textarea class="form-control" id="ShortDescription" name="ShortDescription" rows="2">@Model.Product.ShortDescription</textarea>
+        </div>
+        <div class="form-group">
+            <label for="FullDescription">@Resource.FullDescription</label>
+            <textarea class="form-control" id="FullDescription" name="FullDescription" rows="4">@Model.Product.Description</textarea>
+        </div>
+        <div class="form-group">
+            <label for="InStock">@Resource.InStock</label>
+            <input type="number" class="form-control" style="width:250px" id="InStock" name="InStock" value="@Model.Product.InStock" required>
+        </div>
+        <div class="form-group">
+            <label for="Category">@Resource.Category</label>
+            <select class="form-control" id="Category" name="Category">
+                @foreach (Category category in Model.Categories)
+                {
+                    <option value="@category.Id" @(category.Id == Model.Product.CategoryId ? "selected" : "")>@category.Name</option>
+                }
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="Price">@Resource.Price</label>
+            <input id="CurrentPrice" type="number" class="form-control" style="width:350px" name="Price" value="@Model.Product.Price.ToString("0.00", CultureInfo.InvariantCulture)" step="0.01" required>
+        </div>
+        <div class="form-group">
+            <label for="PreviousPrice">@Resource.PreviousPrice</label>
+            <input type="number" class="form-control" id="PreviousPrice" style="width:350px" name="PreviousPrice" value="@Model.Product.PreviousPrice.ToString("0.00", CultureInfo.InvariantCulture)" step="0.01" @(Model.Product.Price != Model.Product.PreviousPrice ? "" : "readonly")>
+        </div>
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="SaleToggle" name="SaleToggle" @(Model.Product.Price != Model.Product.PreviousPrice ? "checked" : "")>
+            <label class="form-check-label" for="SaleToggle">@Resource.EnableSale</label>
+        </div>
+        <div class="form-group">
+            <label for="ProductImage">@Resource.MainProductImage</label>
+            <input type="file" class="mb-2 form-control image-upload" id="ProductImage" name="ProductImage" accept="image/*">
+            <div style="max-width:700px; max-height:400px" class="justify-content-center product-img position-relative overflow-hidden d-flex align-items-center">
+                <img class="card-img-top" src="@Model.Product.MainImage?.Url()" />
+            </div>
+            <div class="form-group">
+                <label for="ProductImage">@Resource.ProductImages</label>
+                <input type="file" class="form-control multiple-upload" id="ProductImages" name="ProductImages" accept="image/*" multiple>
+            </div>
+            <input type="hidden" name="ProductId" value="@Model.Product.Id">
+        </div>
+    </div>
+    <button class="btn btn-primary" onclick="saveProduct()">@Resource.Save</button>
+</div>
+
+

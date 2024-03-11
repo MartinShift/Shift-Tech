@@ -1,0 +1,176 @@
+﻿@using Shift_Tech.DbModels
+@using System.Globalization
+@{
+    ViewData["Title"] = "Edit Product";
+    Layout = "_AdminLayout";
+}
+
+@model Order;
+@using Resources;
+@section Styles{
+
+}
+@section scripts {
+    <script>
+        function updateOrderStatus() {
+            var orderId = Number("@Model.Id");
+            var status = Number(document.getElementById("Status").value);
+            fetch("/Order/UpdateOrder", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    orderId: orderId,
+                    status: status,
+                })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.href = "/Order/ManageOrders";
+                    }
+                })
+                .catch(error => {
+                    Swal.fire({
+                        title: 'Network Error',
+                        text: error.message,
+                        icon: 'error'
+                    });
+                });
+        }
+        function confirmDelete(orderId, orderName) {
+            Swal.fire({
+                title: '@Resource.DeleteOrder',
+                text: `@Resource.DeleteOrderConfirm '${orderName}'?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: '@Resource.Delete',
+                showLoaderOnConfirm: true,
+                preConfirm: () => {
+                    return fetch("/Order/DeleteOrder", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(orderId)
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                Swal.fire({
+                                    title: '@Resource.Success',
+                                    icon: 'success'
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Error',
+                                    text: response.statusText,
+                                    icon: 'error'
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire({
+                                title: 'Network Error',
+                                text: error.message,
+                                icon: 'error'
+                            });
+                        });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            });
+        }
+
+    </script>
+}
+@section header {
+
+}
+<h2>Edit Order</h2>
+<div class="container-fluid">
+    <div class="row px-xl-5">
+        <div class="col-lg-8">
+            <div class="card mb-4 product-detail-form">
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="ProductName">@Resource.Guid</label>
+                        <input type="text" class="form-control" id="Guid" name="Guid" value="@Model.Guid" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label for="ShortDescription">@Resource.Customer</label>
+                        <input class="form-control" id="Customer" name="FullName" value="@(Model.FirstName + " " + Model.LastName)" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="ShortDescription">@Resource.Email</label>
+                        <input class="form-control" id="CustomerEmail" name="Email" value="@(Model.Email)" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="ShortDescription">@Resource.PhoneNumber</label>
+                        <input class="form-control" id="CustomerPhone" name="Phone" value="@(Model.Phone)" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="FullDescription">@Resource.Country</label>
+                        <input class="form-control" id="Country" name="Country" value="@Model.Country" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label for="FullDescription">@Resource.City</label>
+                        <input class="form-control" id="City" name="City" value="@Model.City" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label for="FullDescription">@Resource.AddressLine1</label>
+                        <input class="form-control" id="Country" name="Country" value="@Model.AddressLine1" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label for="FullDescription">@Resource.AddressLine2</label>
+                        <input class="form-control" id="Country" name="Country" value="@Model.AddressLine2" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label for="Price">@Resource.Price</label>
+                        <input type="number" class="form-control" style="width:350px" id="Price" name="Price" value="@Model.TotalPriceWithShipping()" step="0.01" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="Category">@Resource.Status</label>
+                        <select class="form-control" id="Status" name="Status">
+                            @for (int status = 0; status < 4; status++)
+                            {
+                                <option value="@status" @(status == (int)Model.Status ? "selected" : "")>@((Status)status)</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="updateOrderStatus()">@Resource.Save</button>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">@Resource.OrderTotal</span></h5>
+            <div class="bg-light p-30 mb-5">
+                <div class="border-bottom">
+                    <h6 class="mb-3">@Resource.Products</h6>
+                    @foreach (var product in Model.Products)
+                    {
+                        <div class="d-flex justify-content-between">
+                            <p>@product.Product.Name (@product.ProductCount)</p>
+                            <p>$@(Math.Floor(product.Product.Price * product.ProductCount * 100) / 100)</p>
+                        </div>
+                    }
+                </div>
+                <div class="border-bottom pt-3 pb-2">
+                    <div class="d-flex justify-content-between mb-3">
+                        <h6>@Resource.Subtotal</h6>
+                        <h6>$@Model.TotalPrice()</h6>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <h6 class="font-weight-medium">@Resource.Shipping</h6>
+                        <h6 class="font-weight-medium">$@Model.ShippingPrice()</h6>
+                    </div>
+                </div>
+                <div class="pt-2">
+                    <div class="d-flex justify-content-between mt-2">
+                        <h5>@Resource.Total</h5>
+                        <h5>$@Model.TotalPriceWithShipping()</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

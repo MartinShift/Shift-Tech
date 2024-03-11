@@ -1,0 +1,350 @@
+﻿@{
+    var isAuthenticated = User.Identity.IsAuthenticated;
+    var isAdmin = User.IsInRole("Admin");
+    var isSeller = User.IsInRole("Seller");
+}
+@using Resources;
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="Free HTML Templates" name="keywords">
+    <meta content="Free HTML Templates" name="description">
+    <link href="https://localhost:7166/css/more-styles.css" rel="stylesheet">
+
+    <link href="https://localhost:7166/img/small-logo.png" rel="icon">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="fonts.googleapis.com/css?family=Open+Sans" />
+    <link href="https://localhost:7166/lib/animate/animate.min.css" rel="stylesheet">
+    <link href="https://localhost:7166/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+    <link href="
+https://cdn.jsdelivr.net/npm/sweetalert2@11.7.31/dist/sweetalert2.min.css
+" rel="stylesheet">
+    <link href="https://localhost:7166/css/style.css" rel="stylesheet">
+    <title>@ViewData["Title"] - Shift Tech</title>
+    <style>
+    
+    </style>
+    @RenderSection("styles", required: false)
+</head>
+<body>
+    <header>
+        @RenderSection("header",required:false)
+        <div class="container-fluid">
+            <div class="row bg-secondary py-1 px-xl-5">
+                <div class="col-lg-6 d-none d-lg-block">
+                    <div class="d-inline-flex align-items-center h-100">
+                        <a class="text-body mr-3" href="/">@Resource.Home</a>
+                        <a class="text-body mr-3" href="/Shop/ProductList">@Resource.Shop</a>
+                        <a class="text-body mr-3" href="/Contact">@Resource.Contact</a>
+                    </div>
+                </div>
+                <div class="col-lg-6 text-center text-lg-right">
+                    <div class="d-inline-flex align-items-center">
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">@Resource.MyAccount</button>
+                            @if (!isAuthenticated)
+                            {
+                                <div class="dropdown-menu dropdown-menu-right">
+                                    <a class="dropdown-item" href="/Account/Login">@Resource.SignIn</a>
+                                    <a class="dropdown-item" href="/Account/Register">@Resource.SignUp</a>
+                                </div>
+                            }
+                            @if (isAuthenticated)
+                            {
+                                <div class="dropdown-menu dropdown-menu-right">
+                                    <a class="dropdown-item" href="@Url.Action("MyProfile", "Account")">@Resource.ViewProfile</a>
+                                    <a class="dropdown-item" href="/Account/EditProfile">@Resource.EditProfile</a>
+                                    <button class="dropdown-item" onclick="logout()">@Resource.Logout</button>
+                                    <hr>
+                                    @if (isSeller)
+                                    {
+                                        <a class="dropdown-item" href="/Category/EditCategories">@Resource.EditCategories</a>
+                                        <a class="dropdown-item" href="/Product/EditProducts">@Resource.EditProducts</a>
+                                    }
+                                    @if (!isSeller)
+                                    {
+                                        <a class="dropdown-item" href="/Contact/Request">@Resource.BecomeASeller</a>
+                                    }
+                                    @if (isAdmin)
+                                    {
+                                        <a class="dropdown-item" href="/Order/ManageOrders">@Resource.ManageOrders</a>
+                                        <a class="dropdown-item" href="/Request">@Resource.ManageRequests</a>
+                                    }
+                                    @if (!isAdmin)
+                                    {
+                                        <a class="dropdown-item" href="/Contact/Request">@Resource.BecomeAnAdmin</a>
+                                    }
+
+                                </div>
+                            }
+                        </div>
+                        <div class="btn-group ml-3">
+                            <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">@Resource.Language</button>
+                            <div class="dropdown-menu dropdown-menu-right">
+                                <button data-lang="en-US" id="dropdown-lang-item" class="dropdown-lang-item dropdown-item" type="button">En</button>
+                                <button data-lang="uk-UA" id="dropdown-lang-item" class="dropdown-lang-item dropdown-item" type="button">Ua</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-inline-flex align-items-center d-block d-lg-none">
+                        <a href=" @(User.Identity.IsAuthenticated ? "/Shop/Cart" : "Account/Login")" class="btn px-0 ml-2">
+                            <i class="fas fa-shopping-cart text-dark"></i>
+                            <span id="cartItemCount1" class="badge text-dark border border-dark rounded-circle" style="padding-bottom: 2px;">0</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="row align-items-center bg-light py-3 px-xl-5 d-none d-lg-flex">
+                <div class="col-lg-4">
+                    <div class="logo-container">
+                        <img src="https://localhost:7166/img/full-logo.png" class="img-fluid">
+                    </div>
+                </div>
+                <div class="col-lg-4 col-6 text-left">
+                    <div class="input-group">
+                        <input id="search-products-text" type="text" class="form-control" placeholder="@Resource.SearchForProducts">
+                        <div class="input-group-append" style="height: 38px;">
+                            <span class="input-group-text bg-transparent text-primary">
+                                <button class="btn btn-square" id="search-products"><i class="fa fa-search"></i></button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-6 text-right">
+                    <p class="m-0">@Resource.CustomerService</p>
+                    <h5 class="m-0">+012 345 6789</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="container-fluid bg-dark mb-30">
+            <div class="row px-xl-5">
+                <div class="col-lg-3 d-none d-lg-block">
+                    <a class="btn d-flex align-items-center justify-content-between bg-primary w-100" data-toggle="collapse" href="#navbar-vertical" style="height: 65px; padding: 0 30px;">
+                        <h6 class="text-dark m-0"><i class="fa fa-bars mr-2"></i>@Resources.Resource.Categories</h6>
+                        <i class="fa fa-angle-down text-dark"></i>
+                    </a>
+                    <nav class="collapse position-absolute navbar navbar-vertical navbar-light align-items-start p-0 bg-light" id="navbar-vertical" style="width: calc(100% - 30px); z-index: 999;">
+                        <div id="category-navbar" class="navbar-nav w-100">
+                        </div>
+                    </nav>
+                </div>
+                <div class="col-lg-9">
+                    <nav class="navbar navbar-expand-lg bg-dark navbar-dark py-3 py-lg-0 px-0">
+                        <a href="" class="text-decoration-none d-block d-lg-none">
+                            <div style="width:200px">
+                                <img src="https://localhost:7166/img/small-logo.png" style="width:130px; height:auto" />
+                            </div>
+                        </a>
+                        <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                        <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
+                            <div id="home-context-menu" class="navbar-nav mr-auto py-0">
+                                <a href="/" class="nav-item nav-link active">@Resource.Home</a>
+                                <a href="/Shop/ProductList" class="nav-item nav-link">@Resource.Shop</a>
+                                <a href="/Contact" class="nav-item nav-link">@Resource.Contact</a>
+                            </div>
+                            <div class="navbar-nav ml-auto py-0 d-none d-lg-block">
+                                <a href=@(User.Identity.IsAuthenticated ? "/Shop/Cart" : "Account/Login") class="btn px-0 ml-3">
+                                    <i class="fas fa-shopping-cart text-primary"></i>
+                                    <span id="cartItemCount" class="badge text-secondary border border-secondary rounded-circle" style="padding-bottom: 2px;">0</span>
+                                </a>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mt-4">
+        @RenderBody()
+        <a href="#" class="btn btn-primary back-to-top"><i class="fa fa-angle-double-up"></i></a>
+    </div>
+
+    <footer>
+        @RenderSection("footer",required:false)
+        <div class="container-fluid bg-dark text-secondary mt-5 pt-5">
+            <div class="row px-xl-5 pt-5">
+                <div class="col-lg-4 col-md-12 mb-5 pr-3 pr-xl-5">
+                    <h5 class="text-secondary text-uppercase mb-4">@Resource.GetInTouch</h5>
+                    <p class="mb-2"><i class="fa fa-map-marker-alt text-primary mr-3"></i>@Resource.Street123NewYorkUSA</p>
+                    <p class="mb-2"><i class="fa fa-envelope text-primary mr-3"></i>info@example.com</p>
+                    <p class="mb-0"><i class="fa fa-phone-alt text-primary mr-3"></i>+012 345 67890</p>
+                </div>
+                <div class="col-lg-8 col-md-12">
+                    <div class="row">
+                        <div class="col-md-4 mb-5">
+                            <h5 class="text-secondary text-uppercase mb-4">@Resource.QuickShop</h5>
+                            <div class="d-flex flex-column justify-content-start">
+                                <a class="text-secondary mb-2" href="/"><i class="fa fa-angle-right mr-2"></i>@Resource.Home</a>
+                                <a class="text-secondary mb-2" href="/Shop"><i class="fa fa-angle-right mr-2"></i>@Resource.Shop</a>
+                                <a class="text-secondary mb-2" href="/Shop/Cart"><i class="fa fa-angle-right mr-2"></i>@Resource.ShoppingCart</a>
+                                <a class="text-secondary" href="/Contact"><i class="fa fa-angle-right mr-2"></i>@Resource.Contact</a>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-5">
+                            <h5 class="text-secondary text-uppercase mb-4">@Resource.MyAccount</h5>
+                            <div class="d-flex flex-column justify-content-start">
+                                @if (isAuthenticated)
+                                {
+                                    <a class="text-secondary mb-2" href="/Account/UserProfile"><i class="fa fa-angle-right mr-2"></i>@Resource.ViewProfile</a>
+                                    <a class="text-secondary mb-2" href="/Account/EditProfile"><i class="fa fa-angle-right mr-2"></i>@Resource.EditProfile</a>
+                                }
+                                @if (!isAuthenticated)
+                                {
+                                    <a class="text-secondary mb-2" href="/Account/Login"><i class="fa fa-angle-right mr-2"></i>@Resource.SignIn</a>
+                                    <a class="text-secondary mb-2" href="/Account/Register"><i class="fa fa-angle-right mr-2"></i>@Resource.SignUp</a>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-5">
+                            <h5 class="text-secondary text-uppercase mb-4">@Resource.Newsletter</h5>
+                            <p>@Resource.Subscribe</p>
+                            <form action="">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="@Resource.YourEmailAddress">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-primary">@Resource.SignUpEmail</button>
+                                    </div>
+                                </div>
+                            </form>
+                            <h6 class="text-secondary text-uppercase mt-4 mb-3">@Resource.FollowUs</h6>
+                            <div class="d-flex">
+                                <a class="btn btn-primary btn-square mr-2" href="https://twitter.com/home"><i class="fab fa-twitter"></i></a>
+                                <a class="btn btn-primary btn-square mr-2" href="https://www.facebook.com"><i class="fab fa-facebook-f"></i></a>
+                                <a class="btn btn-primary btn-square mr-2" href="https://www.linkedin.com/feed/"><i class="fab fa-linkedin-in"></i></a>
+                                <a class="btn btn-primary btn-square" href="https://www.instagram.com"><i class="fab fa-instagram"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row border-top mx-xl-5 py-4" style="border-color: rgba(256, 256, 256, .1) !important;">
+                <div class="col-md-6 px-xl-0">
+                    <p class="mb-md-0 text-center text-md-left text-secondary">
+                        &copy; <a class="text-primary" href="#">Domain</a>. All Rights Reserved. Designed
+                        by
+                        <a class="text-primary" href="https://htmlcodex.com">HTML Codex</a>
+                    </p>
+                </div>
+                <div class="col-md-6 px-xl-0 text-center text-md-right">
+                    <img class="img-fluid" src="https://localhost:7166/img/payments.png" alt="">
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script src="
+https://cdn.jsdelivr.net/npm/sweetalert2@11.7.31/dist/sweetalert2.all.min.js
+"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.min.js"></script>
+     
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+    <script src="https://localhost:7166/lib/easing/easing.min.js"></script>
+    <script src="https://localhost:7166/lib/owlcarousel/owl.carousel.min.js"></script>
+
+    <script src="https://localhost:7166/mail/jqBootstrapValidation.min.js"></script>
+    <script src="https://localhost:7166/mail/contact.js"></script>
+
+
+    <script src="https://localhost:7166/js/main.js"></script>
+    <script>
+        function logout() {
+            fetch('/Account/Logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.href = '/Account/Login';
+                    } else {
+                        console.log(response)
+                        console.error('Logout failed');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+        document.addEventListener("DOMContentLoaded", function () {
+            fetch("/Shop/GetCartItemCount", {
+                method: "GET",
+                headers: {
+                    "Accept": "application/json"
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("cartItemCount").textContent = data.count;
+                    document.getElementById("cartItemCount1").textContent = data.count;
+                })
+                .catch(error => {
+                    console.error("Fetch error:", error);
+                });
+            loadcategories();
+            $('.dropdown-lang-item').click(function () {
+                var selectedLang = $(this).data('lang');
+                console.log(selectedLang);
+                fetch('/Language/ChangeLanguage', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(selectedLang), 
+                })
+                    .then(function (response) {
+                        if (response.ok) {
+                            location.reload(); 
+                        } else {
+                            console.error('Localization update failed:', response.statusText);
+                        }
+                    })
+                    .catch(function (error) {
+                        console.error('Localization update failed:', error);
+                    });
+            });
+        });
+        function loadcategories() {
+            fetch("/Shop/GetTopListCategories", {
+                method: "GET",
+                headers: {
+                    "Accept": "application/json"
+                }
+            })
+                .then(response => {
+                    return response.json();
+                })
+                .then(data => {
+
+                    var navbarNav = document.getElementById("category-navbar");
+                    navbarNav.innerHTML = "";
+
+                    data.categories.forEach(function (category) {
+                        var link = document.createElement("a");
+                        link.href = `/Shop/CategoryProductList/${category.id}`;
+                        link.className = "nav-item nav-link";
+                        link.textContent = category.name;
+
+                        navbarNav.appendChild(link);
+                    });
+                })
+                .catch(error => {
+                    console.error("Fetch error:", error);
+                });
+
+        }
+    </script>
+    @RenderSection("Scripts",required:false);
+</body>
+</html>

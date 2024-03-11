@@ -1,0 +1,137 @@
+﻿@using System.Linq;
+@using Shift_Tech.DbModels
+@using System.ComponentModel.DataAnnotations.Schema;
+@{
+    ViewData["Title"] = "Manage Products";
+    Layout = "_AdminLayout";
+}
+@section Styles {
+
+}
+@using Resources;
+@section scripts {
+    <script>
+        function addProduct() {
+            // Gather data from the form fields
+            const productName = document.getElementById("NewProductName").value;
+            const productPrice = parseFloat(document.getElementById("NewProductPrice").value);
+            const categoryId = parseInt(document.getElementById("NewProductCategory").value);
+            fetch("/Product/AddProduct", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: productName,
+                    price: productPrice,
+                    categoryId: categoryId
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    location.reload();
+                })
+                .catch(error => {
+                    location.reload();
+                });
+        }
+        function confirmDelete(productId, productName) {
+            Swal.fire({
+                title: '@Resource.DeleteProduct',
+                text: `@Resource.DeleteProductConfirm'${productName}'?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: '@Resource.Delete',
+                showLoaderOnConfirm: true,
+                preConfirm: () => {
+                    return fetch("/Product/DeleteProduct", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(productId)
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                Swal.fire({
+                                    title: '@Resource.Success',
+                                    icon: 'success'
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Error',
+                                    text: response.statusText,
+                                    icon: 'error'
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire({
+                                title: 'Network Error',
+                                text: error.message,
+                                icon: 'error'
+                            });
+                        });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            });
+        }
+    </script>
+
+}
+@section header {
+
+}
+
+<div class="container">
+
+    <div class="row pb-3">
+    @foreach (Product product in Model.Products)
+    {
+        var image = product.MainImage;
+       
+            <div class="col-lg-4 col-md-6 col-sm-6 pb-1">
+                <div class="justify-content-center product-item bg-light mb-4">
+                    <div class="card-image-container justify-content-center product-img position-relative overflow-hidden d-flex align-items-center">
+                        <img src="@image?.Url()" class="card-img-top" alt="Product Image">
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">@product.Name</h5>
+                        <p class="card-text">Price: $@product.Price</p>
+                        <a href="@Url.Action("EditProductDetail", "Product", new { productId = product.Id })" class="btn btn-primary">@Resource.Edit</a>
+                        <button class="btn btn-danger" onclick="confirmDelete(@product.Id, '@product.Name')">@Resource.Delete</button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">@Resource.AddNewProduct</h5>
+            <form method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="NewProductName">@Resource.Name</label>
+                    <input type="text" class="form-control" id="NewProductName" name="NewProductName" placeholder="@Resource.EnterProductName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="NewProductPrice">@Resource.Price</label>
+                    <input type="number" class="form-control" style="width:350px" id="NewProductPrice" name="NewProductPrice" placeholder="@Resource.EnterProductPrice" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="Category">@Resource.Category</label>
+                    <select class="form-control" id="NewProductCategory" name="Category">
+                        @foreach (var category in Model.Categories)
+                        {
+                            <option value="@category.Id">@category.Name</option>
+                        }
+                    </select>
+                </div>
+                <button type="submit" onclick="addProduct()">@Resource.Add</button>
+            </form>
+        </div>
+    </div>
+
+</div>
+

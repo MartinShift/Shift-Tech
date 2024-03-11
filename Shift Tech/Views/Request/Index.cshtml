@@ -1,0 +1,155 @@
+﻿@using Shift_Tech.DbModels;
+@{
+}
+@{
+    Layout = "_AdminLayout";
+}
+@model List<Request>
+@section Styles{
+    <style>
+        .profile-image {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+    </style>
+}
+@using Resources;
+@section scripts{
+    <script>
+        function declineRequest(requestId) {
+            Swal.fire({
+                title: '@Resource.DeclineRequest',
+                text: `@Resource.DeclineRequestConfirm'${requestId}'?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: '@Resource.Decline',
+                showLoaderOnConfirm: true,
+                preConfirm: () => {
+                    return fetch("/Request/DeclineRequest", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(requestId)
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                Swal.fire({
+                                    title: '@Resource.Success',
+                                    icon: 'success'
+                                });
+                                location.reload();
+                            } else {
+                                Swal.fire({
+                                    title: 'Error Declining Request',
+                                    text: response.statusText,
+                                    icon: 'error'
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire({
+                                title: 'Network Error',
+                                text: error.message,
+                                icon: 'error'
+                            });
+                        });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            });
+        }
+        function acceptRequest(requestId) {
+            Swal.fire({
+                title: '@Resource.AcceptRequest',
+                text: `Are you sure you want to accept the request '${requestId}'?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#7851a9',
+                confirmButtonText: '@Resource.Accept',
+                showLoaderOnConfirm: true,
+                preConfirm: () => {
+                    return fetch("/Request/AcceptRequest", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(requestId)
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                Swal.fire({
+                                    title: '@Resource.Accept',
+                                    icon: 'success'
+                                });
+                                location.reload();
+                            } else {
+                                Swal.fire({
+                                    title: 'Error',
+                                    text: response.statusText,
+                                    icon: 'error'
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire({
+                                title: 'Network Error',
+                                text: error.message,
+                                icon: 'error'
+                            });
+                        });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            });
+        }
+    </script>
+}
+
+<div class="container">
+    <div class="row mt-5">
+        <div class="col-md-6">
+            <div>
+                <table class="table table-hover table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>@Resource.UserImage</th>
+                            <th>@Resource.Sender</th>
+                            <th>@Resource.RequestType</th>
+                            <th>@Resource.Email</th>
+                            <th>@Resource.PhoneNumber</th>
+                            <th>@Resource.Message</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var request in Model)
+                        {
+                            <tr>
+                                <td>@request.Id</td>
+                                <td>
+                                    <img src="@request.Sender.Logo?.Url()" class="profile-image" />
+                                </td>
+                                <td>@request.SenderName</td>
+                                <td>@request.RequestType</td>
+                                <td>@request.Email</td>
+                                <td>@request.Phone</td>
+                                <td>@request.Message</td>
+                                <td>
+                                    <div class="d-flex">
+                                        <button onclick="acceptRequest(@request.Id)" class="btn btn-outline-info">@Resource.Accept</button>
+                                        <button onclick="declineRequest(@request.Id)" class="btn btn-outline-warning">@Resource.Decline</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+</div>

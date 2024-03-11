@@ -1,0 +1,6 @@
+﻿@using Shift_Tech.DbModels;
+@model List<Product>
+@foreach (Product product in Model)
+{
+    @Html.Partial("_ProductPartial", product)
+}

@@ -1,0 +1,368 @@
+﻿@using Shift_Tech.Models
+@using Shift_Tech.DbModels
+@model Shift_Tech.ViewModels.ProductListViewModel;
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Product List";
+    var isAdmin = User.IsInRole("admin");
+    var products = Model.Products;
+    var pricerange = Model.PriceRange;
+    var categories = Model.Categories;
+    var selectedCategories = Model.SelectedCategories;
+}
+
+@section styles {
+    <style>
+        .full-card {
+            width: 100%;
+            height: 100%;
+        }
+
+        .range_container {
+            display: flex;
+            flex-direction: column;
+            width: 80%;
+            margin: 100px auto;
+        }
+
+        .sliders_control {
+            position: relative;
+            min-height: 50px;
+        }
+
+        .form_control {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            font-size: 24px;
+            color: #635a5a;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            pointer-events: all;
+            width: 24px;
+            height: 24px;
+            background-color: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 0 1px #C6C6C6;
+            cursor: pointer;
+        }
+
+        input[type=range]::-moz-range-thumb {
+            -webkit-appearance: none;
+            pointer-events: all;
+            width: 24px;
+            height: 24px;
+            background-color: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 0 1px #C6C6C6;
+            cursor: pointer;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            background: #f7f7f7;
+        }
+
+        input[type=range]::-webkit-slider-thumb:active {
+            box-shadow: inset 0 0 3px #387bbe, 0 0 9px #387bbe;
+            -webkit-box-shadow: inset 0 0 3px #387bbe, 0 0 9px #387bbe;
+        }
+
+        input[type="number"] {
+            color: #8a8383;
+            width: auto;
+            height: 30px;
+            font-size: 20px;
+            border: none;
+        }
+
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            opacity: 1;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 2px;
+            width: 100%;
+            position: absolute;
+            background-color: #C6C6C6;
+            pointer-events: none;
+        }
+
+        #fromSlider {
+            height: 0;
+            z-index: 1;
+        }
+    </style>
+}
+@section header {
+
+}
+
+@using Resources;
+<body>
+    <div class="container-fluid">
+        <div class="row px-xl-5">
+            <div class="col-lg-3 col-md-4">
+                <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">@Resource.FilterByPrice</span></h5>
+                <div class="range_container">
+                    <div class="sliders_control">
+                        <input id="fromSlider" type="range" value="@pricerange.StartPrice" min="@pricerange.StartPrice" max="@pricerange.EndPrice" />
+                        <input id="toSlider" type="range" value="@pricerange.EndPrice" min="@pricerange.StartPrice" max="@pricerange.EndPrice" />
+                    </div>
+                    <div class="form_control">
+                        <div class="form_control_container">
+                            <div class="form_control_container__time">@Resource.Min</div>
+                            <input class="form_control_container__time__input" type="number" id="fromInput" value="@pricerange.StartPrice" min="@pricerange.StartPrice" max="@pricerange.EndPrice" />
+                        </div>
+                        <div class="form_control_container">
+                            <div class="form_control_container__time">@Resource.Max</div>
+                            <input class="form_control_container__time__input" type="number" id="toInput" value="@pricerange.EndPrice" min="@pricerange.StartPrice" max="@pricerange.EndPrice" />
+                        </div>
+                    </div>
+                    <button class="btn btn-primary px-3 mt-2" onclick="FilterByPrice()">
+                        <i class="fa mr-1"></i> @Resource.ApplyChanges
+                    </button>
+                </div>
+                <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">@Resource.FilterByCategories</span></h5>
+                <div class="bg-light p-4 mb-30">
+                    @foreach (Category category in categories)
+                    {
+                        <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                            <input type="checkbox" class="custom-control-input category-checkbox" data-id="@category.Id" id="price-@category.Id" onchange="categoriesUpdate()">
+                            <label class="custom-control-label" for="price-@category.Id">@category.Name</label>
+                            <span class="badge border font-weight-normal">@category.Products.Count</span>
+                        </div>
+                    }
+                </div>
+
+            </div>
+            <div class="col-lg-9 col-md-8">
+                <div class="row pb-3">
+                    <div class="col-12 pb-1">
+                        <div class="d-flex align-items-center justify-content-between mb-4">
+                            <div class="ml-2">
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">@Resource.Sorting</button>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <button class="dropdown-item" onclick="sortSelect(0)">@Resource.Popularity</button>
+                                        <button class="dropdown-item" onclick="sortSelect(1)">@Resource.Recent</button>
+                                        <button class="dropdown-item" onclick="sortSelect(2)">@Resource.CheapestToExpensive</button>
+                                        <button class="dropdown-item" onclick="sortSelect(3)">@Resource.ExpensiveToCheapest</button>
+                                        <button class="dropdown-item" onclick="sortSelect(4)">@Resource.BestRating</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 pb-1">
+                        <div class="row" id="Product-list">
+                            @Html.Partial("_ProductListPartial",products)
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <nav>
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item active"><a data-page="1" class="page-link" href="#">1</a></li>
+                                <li class="page-item"><a data-page="2" class="page-link" href="#">2</a></li>
+                                <li class="page-item"><a data-page="3" class="page-link" href="#">3</a></li>
+                            </ul>
+                        </nav>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    @section footer {
+
+    }
+
+    @section Scripts {
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                document.getElementById("home-context-menu").innerHTML =
+                    `  <a href="/" class="nav-item nav-link ">@Resource.Home</a>
+                                                    <a href = "/Shop/ProductList" class="nav-item nav-link active" >@Resource.Shop</a>
+                                            <a href = "/Contact" class="nav-item nav-link" >@Resource.Contact</a>`
+            });
+            var filter = {
+                minPrice: 0,
+                maxPrice: 100000,
+                selectedCategories: [],
+                search: '',
+                page: 1,
+                sortOption: 0,
+            }
+            function updateProducts() {
+                fetch(`/Shop/FilterProducts`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(filter)
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error("Network response was not ok");
+                        }
+                        return response.text();
+                    })
+                    .then(data => {
+                        document.getElementById("Product-list").innerHTML = data;
+                    })
+                    .catch(error => {
+                        console.error("Fetch error:", error);
+                    });
+            }
+            function sortSelect(id)
+            {
+                filter.sortOption = id;
+                updateProducts();
+            }
+            document.getElementById("search-products").addEventListener("click", e => {
+
+                var text = document.getElementById("search-products-text").value;
+                console.log(text);
+                filter.search = text;
+                updateProducts();
+            });
+
+            function categoriesUpdate() {
+                var checkboxes = document.querySelectorAll('.category-checkbox')
+                var checkedCategories = Array.from(checkboxes)
+                    .filter(checkbox => checkbox.checked)
+                    .map(checkbox => {
+                        return parseInt(checkbox.getAttribute("data-id"));
+                    })
+                console.log(checkedCategories);
+
+                filter.selectedCategories = checkedCategories;
+                updateProducts();
+            }
+            function addToCart(productId) {
+                const productCount = 1;
+
+                fetch("/Shop/AddToCart", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(
+                        {
+                            productId: productId,
+                            productAmount: productCount
+                        })
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error("Network response was not ok");
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        document.getElementById("cartItemCount").textContent = data.cartItemCount;
+                    })
+                    .catch(error => {
+                        console.error("Fetch error:", error);
+                    });
+            }
+            $("a[data-page]").on("click", e => {
+                e.preventDefault();
+                let page = $(e.target).data("page")
+                filter.page = page
+                updateProducts()
+            });
+            function FilterByPrice() {
+                const fromInput = document.getElementById("fromInput");
+                const toInput = document.getElementById("toInput");
+                filter.minPrice = parseFloat(fromInput.value) - 1;
+                filter.maxPrice = parseFloat(toInput.value) + 1;
+                updateProducts()
+            }
+
+            function controlFromInput(fromSlider, fromInput, toInput, controlSlider) {
+                const [from, to] = getParsed(fromInput, toInput);
+                fillSlider(fromInput, toInput, '#C6C6C6', '#25daa5', controlSlider);
+                if (from > to) {
+                    fromSlider.value = to;
+                    fromInput.value = to;
+                } else {
+                    fromSlider.value = from;
+                }
+            }
+
+            function controlToInput(toSlider, fromInput, toInput, controlSlider) {
+                const [from, to] = getParsed(fromInput, toInput);
+                fillSlider(fromInput, toInput, '#C6C6C6', '#25daa5', controlSlider);
+                setToggleAccessible(toInput);
+                if (from <= to) {
+                    toSlider.value = to;
+                    toInput.value = to;
+                } else {
+                    toInput.value = from;
+                }
+            }
+
+            function controlFromSlider(fromSlider, toSlider, fromInput) {
+                const [from, to] = getParsed(fromSlider, toSlider);
+                fillSlider(fromSlider, toSlider, '#C6C6C6', '#25daa5', toSlider);
+                if (from > to) {
+                    fromSlider.value = to;
+                    fromInput.value = to;
+                } else {
+                    fromInput.value = from;
+                }
+            }
+
+            function controlToSlider(fromSlider, toSlider, toInput) {
+                const [from, to] = getParsed(fromSlider, toSlider);
+                fillSlider(fromSlider, toSlider, '#C6C6C6', '#25daa5', toSlider);
+                setToggleAccessible(toSlider);
+                if (from <= to) {
+                    toSlider.value = to;
+                    toInput.value = to;
+                } else {
+                    toInput.value = from;
+                    toSlider.value = from;
+                }
+            }
+
+            function getParsed(currentFrom, currentTo) {
+                const from = parseInt(currentFrom.value, 10);
+                const to = parseInt(currentTo.value, 10);
+                return [from, to];
+            }
+
+            function fillSlider(from, to, sliderColor, rangeColor, controlSlider) {
+                const rangeDistance = to.max - to.min;
+                const fromPosition = from.value - to.min;
+                const toPosition = to.value - to.min;
+                controlSlider.style.background = `linear-gradient(
+                                                                                                                          to right,
+                                                                                                                          ${sliderColor} 0%,
+                                                                                                                          ${sliderColor} ${(fromPosition) / (rangeDistance) * 100}%,
+                                                                                                                          ${rangeColor} ${((fromPosition) / (rangeDistance)) * 100}%,
+                                                                                                                          ${rangeColor} ${(toPosition) / (rangeDistance) * 100}%,
+                                                                                                                          ${sliderColor} ${(toPosition) / (rangeDistance) * 100}%,
+                                                                                                                          ${sliderColor} 100%)`;
+            }
+
+            function setToggleAccessible(currentTarget) {
+                const toSlider = document.querySelector('#toSlider');
+                if (Number(currentTarget.value) <= 0) {
+                    toSlider.style.zIndex = 2;
+                } else {
+                    toSlider.style.zIndex = 0;
+                }
+            }
+        </script>
+    }
+</body>
+
+
+

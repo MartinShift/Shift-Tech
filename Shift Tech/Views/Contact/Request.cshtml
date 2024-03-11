@@ -1,0 +1,68 @@
+﻿@{
+    Layout = "_Layout";
+}
+
+@section Styles{
+
+}
+@section scripts{
+
+}
+@using Resources;
+@section header{
+    <header></header>
+}
+<div class="container-fluid">
+    <h2 class="section-title position-relative text-uppercase mx-xl-5 mb-4"><span class="bg-secondary pr-3">@Resource.Request</span></h2>
+    <div class="row px-xl-5">
+        <div class="col-lg-7 mb-5">
+            <div class="contact-form bg-light p-30">
+                <div id="success"></div>
+                <form method="post" action="/Contact/SubmitRequest">
+                    <div class="control-group">
+                        <input name="SenderName" type="text" class="form-control" id="name" placeholder="@Resource.YourName"
+                               required="required" data-validation-required-message="@Resource.PleaseEnterYourName" />
+                        <p class="help-block text-danger"></p>
+                    </div>
+                    <div class="control-group">
+                        <input name="Email" type="email" class="form-control" id="email" placeholder="@Resource.YourEmailAddress"
+                               required="required" data-validation-required-message="@Resource.PleaseEnterYourEmail" />
+                        <p class="help-block text-danger"></p>
+                    </div>
+                    <div class="control-group">
+                        <input name="Phone" type="text" class="form-control" id="phone" placeholder="@Resource.PhoneNumber"
+                               required="required" data-validation-required-message="@Resource.PleaseEnterPhoneNumber" />
+                        <p class="help-block text-danger"></p>
+                    </div>
+                    <div class="control-group">
+                        <textarea name="Message" class="form-control" rows="8" id="message" placeholder="@Resource.Message"
+                                  required="required"
+                                  data-validation-required-message="@Resource.PleaseEnterAMessage"></textarea>
+                        <p class="help-block text-danger"></p>
+                    </div>
+                    <div class="control-group">
+                        <select name="RequestType" class=" mt-1 mb-2 custom-select">
+                            @if (!User.IsInRole("Seller"))
+                            {
+                                <option value="0" selected>@Resource.BecomeASeller</option>
+                            }
+                            @if (!User.IsInRole("Admin"))
+                            {
+                            <option value="1">@Resource.BecomeAnAdmin</option>
+                            }
+                        </select>
+                    </div>           
+                    <div>
+                        <button class="btn btn-primary py-2 px-4" type="submit" id="sendMessageButton">
+                           @Resource.SubmitRequest
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@section footer{
+    <footer>
+    </footer>
+}

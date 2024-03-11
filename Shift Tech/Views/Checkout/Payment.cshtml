@@ -1,0 +1,58 @@
+﻿@*
+   
+*@
+@{
+	Layout = "_Layout";
+	var data = ViewData["data"];
+	var signature = ViewData["signature"];
+}
+@section Styles{
+
+}
+
+<div id="liqpay_checkout">
+
+</div>
+
+@section scripts{
+	<div id="liqpay_checkout"></div>
+	<script>
+		window.LiqPayCheckoutCallback = function () {
+			LiqPayCheckout.init({
+				data: '@Html.Raw(ViewData["data"])',
+				signature: '@Html.Raw(ViewData["signature"])',
+				embedTo: "#liqpay_checkout",
+				language: "uk",
+				mode: "embed" // embed || popup
+			}).on("liqpay.callback", function (data) {
+				fetch("/Checkout/SubmitPayment", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json"
+					},
+					body: JSON.stringify(
+						{
+							data: data.notify.data,
+							signature: data.notify.signature,
+							orderId: parseInt('@Html.Raw(ViewData["order"])')
+						}
+					)
+				})
+					.then(response => response.json())
+					.then(data => {
+					//
+					})
+					.catch(error => {
+						console.error("Fetch error:", error);
+					});
+			}).on("liqpay.ready", function (data) {
+				// ready
+			}).on("liqpay.close", function (data) {
+				// close
+			});
+		};
+	</script>
+	<script src="//static.liqpay.ua/libjs/checkout.js" async></script>
+
+}
+

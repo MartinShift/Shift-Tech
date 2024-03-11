@@ -1,0 +1,208 @@
+﻿@model Shift_Tech.DbModels.Cart;
+@{
+    Layout = "_Layout";
+    var subtotal = Math.Floor(Model.Products.Sum(x => x.Product.Price * x.ProductCount) * 100) / 100;
+    var shippingPrice = Math.Floor(subtotal / 30 * 100) / 100;
+}
+
+<head>
+    @section styles{
+
+    }
+</head>
+@section Scripts{
+    <script>
+        function formatDate(input) {
+            input.value = input.value.replace(/\D/g, '');
+            if (input.value.length > 2) {
+                input.value = input.value.substring(0, 2) + '/' + input.value.substring(2);
+            }
+        }
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("home-context-menu").innerHTML =
+                `  <a href=" / " class="nav-item nav-link">@Resources.Resource.Home</a>
+                                    <a href = "/Shop/ProductList" class="nav-item nav-link" >@Resources.Resource.Shop</a>
+                                        <a href = "/Contact" class="nav-item nav-link" >@Resources.Resource.Contact</a>`
+        });
+    </script>
+
+}
+@using Resources;
+<body>
+    @section header{
+        <header>
+        </header>
+    }
+    <div class="container-fluid">
+        <form method="post" action="/Checkout/SubmitCheckout">
+            <div class="row px-xl-5">
+                <div class="col-lg-8">
+                    <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">@Resource.BillingAddress</span></h5>
+                    <div class="bg-light p-30 mb-5">
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <label>@Resource.FirstName</label>
+                                <input name="FirstName" class="form-control" type="text" placeholder="John">
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label>@Resource.LastName</label>
+                                <input name="LastName" class="form-control" type="text" placeholder="Doe">
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label>@Resource.MobileNo</label>
+                                <input name="Phone" class="form-control" type="text" placeholder="+123 456 789">
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label>@Resource.AddressLine1</label>
+                                <input name="AddressLine1" class="form-control" type="text" placeholder="123 Street">
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label>@Resource.AddressLine2</label>
+                                <input name="AddressLine2" class="form-control" type="text" placeholder="123 Street">
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label>@Resource.Country</label>
+                                <select name="Country" class="custom-select">
+                                    <option selected>@Resource.UnitedStates</option>
+                                    <option>
+                                        @Resource.Austria
+                                    </option>
+                                    <option>
+                                          @Resource.Belgium
+                                    </option>
+                                    <option>
+                                        @Resource.Bulgaria
+                                    </option>
+                                    <option>
+                                        @Resource.Croatia
+                                    </option>
+                                    <option>
+                                        @Resource.Cyprus
+                                    </option>
+                                    <option>
+                                          @Resource.Croatia
+                                    </option>
+                                    <option>
+                                        @Resource.Denmark
+                                    </option>
+                                    <option>
+                                          @Resource.Estonia
+                                    </option>
+                                    <option>
+                                        @Resource.Finland
+                                    </option>
+                                    <option>
+                                        @Resource.France
+                                    </option>
+                                    <option>
+                                        @Resource.Germany
+                                    </option>
+                                    <option>
+                                        @Resource.Greece
+                                    </option>
+                                    <option>
+                                          @Resource.Hungary
+                                    </option>
+                                    <option>
+                                        @Resource.Ireland
+                                    </option>
+                                    <option>
+                                          @Resource.Italy
+                                    </option>
+                                    <option>
+                                          @Resource.Latvia
+                                    </option>
+                                    <option>
+                                          @Resource.Lithuania
+                                    </option>
+                                    <option>
+                                        @Resource.Luxembourg
+                                    </option>
+                                    <option>
+                                        @Resource.Malta
+                                    </option>
+                                    <option>
+                                        @Resource.Netherlands
+                                    </option>
+                                    <option>
+                                        @Resource.Poland
+                                    </option>
+                                    <option>
+                                          @Resource.Portugal
+                                    </option>
+                                    <option>
+                                          @Resource.Romania
+                                    </option>
+                                    <option>
+                                          @Resource.Slovakia
+                                    </option>
+                                    <option>
+                                        @Resource.Slovenia
+                                    </option>
+                                    <option>
+                                        @Resource.Spain
+                                    </option>
+                                    <option>
+                                          @Resource.Sweden
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label>@Resource.City</label>
+                                <input name="City" class="form-control" type="text" placeholder="New York">
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label>@Resource.PostalIndex</label>
+                                <input name="PostalCode" class="form-control" type="text" placeholder="123">
+                            </div>
+                            <div class="col-md-12">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">@Resource.OrderTotal</span></h5>
+                    <div class="bg-light p-30 mb-5">
+                        <div class="border-bottom">
+                            <h6 class="mb-3">@Resource.Products</h6>
+                            @foreach (var product in Model.Products)
+                            {
+                                <div class="d-flex justify-content-between">
+                                    <p>@product.Product.Name (@product.ProductCount)</p>
+                                    <p>$@(Math.Floor(product.Product.Price * product.ProductCount * 100) / 100)</p>
+                                </div>
+                            }
+                        </div>
+                        <div class="border-bottom pt-3 pb-2">
+                            <div class="d-flex justify-content-between mb-3">
+                                <h6>@Resource.Subtotal</h6>
+                                <h6>$@subtotal</h6>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <h6 class="font-weight-medium">@Resource.Shipping</h6>
+                                <h6 class="font-weight-medium">$@shippingPrice</h6>
+                            </div>
+                        </div>
+                        <div class="pt-2">
+                            <div class="d-flex justify-content-between mt-2">
+                                <h5>@Resource.Total</h5>
+                                <h5>$@(subtotal + shippingPrice)</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-5">
+                        <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">@Resource.Payment</span></h5>
+                        <div class="bg-light p-30">
+                            <button type="submit" class="btn btn-block btn-primary font-weight-bold py-3">@Resource.PlaceOrder</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    @section footer{
+        <footer>
+        </footer>
+    }
+</body>

@@ -1,0 +1,181 @@
+﻿@model Shift_Tech.ViewModels.CategoryViewModel
+
+@{
+    ViewData["Title"] = "Manage Categories";
+    Layout = "_AdminLayout";
+}
+@section Styles {
+    <link href="
+https://cdn.jsdelivr.net/npm/sweetalert2@11.7.31/dist/sweetalert2.min.css
+" rel="stylesheet">
+}
+
+@section scripts {
+    <script src="https://code.jquery.com/jquery-3.7.1.js"
+            integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <script>
+
+        function confirmDelete(categoryId, categoryName) {
+            Swal.fire({
+                title: '@Resource.DeleteCategory',
+                text: `@Resource.DeleteCategoryConfirm '${categoryName}'?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Delete',
+                showLoaderOnConfirm: true,
+                preConfirm: () => {
+                    return fetch(`/Category/DeleteCategory`,
+                        {
+                            method: 'post',
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify(categoryId)
+                        }
+                    )
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(response.statusText);
+                            }
+                            return response.json();
+                        })
+                        .catch(error => {
+                            Swal.showValidationMessage(`Request failed: ${error}`);
+                        });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: '@Resource.Success',
+                        icon: 'success'
+                    });
+                    // Refresh the page or update the category list
+                    location.reload();
+                }
+            });
+        }
+        function addCategory() {
+            const newCategoryName = document.getElementById("NewCategoryName").value;
+            fetch(`/Category/AddCategory`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(newCategoryName.toString())
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.message == "Success!") {
+                        Swal.fire({
+                            title: '@Resource.Success',
+                            icon: 'success'
+                        });
+                    }
+                    location.reload();
+                })
+                .catch(error => {
+                    Swal.fire({
+                        title: 'Error Adding Category',
+                        text: error.message,
+                        icon: 'error'
+                    });
+                });
+        }
+        const categoryNameInputs = document.querySelectorAll('.category-name');
+        categoryNameInputs.forEach(input => {
+            input.addEventListener('input', function (event) {
+                const categoryId = this.getAttribute('data-id');
+                const newName = this.value;
+                fetch(`/Category/EditCategoryName`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(
+                        {
+                            id: categoryId,
+                            name: newName
+
+                        }
+                    )
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(response.statusText);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                    })
+                    .catch(error => {
+                        Swal.showValidationMessage(`Request failed: ${error}`);
+                    });
+            });
+        });
+
+        $("input.image-upload").on("change", (e) => {
+            const fileInput = e.target;
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+            const container = fileInput.closest('.category-form');
+            const index = fileInput.getAttribute("data-id");
+            fetch(`/Category/Uploads/${index}`, {
+                method: "post",
+                body: formData
+            }).then(r => r.json())
+                .then(data => {
+                    location.reload();
+                });
+        });
+    </script>
+
+}
+@section header {
+
+}
+
+@using Resources;
+<div class="row">
+    @foreach (var category in Model.Categories)
+    {
+        <div class="col-md-3 mb-3 category-form">
+            <div class="card ">
+                <div class="card-image-container justify-content-center product-img position-relative overflow-hidden d-flex align-items-center">
+                    <img src="@category.Image?.Url()" class="card-img-top" alt="Category Image" style="max-width: 250px; max-height: 250px;">
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">@category.Name</h5>
+                    <div class="input-group mb-2">
+                        <input type="text" class="form-control category-name" data-id="@category.Id" value="@category.Name" required>
+                    </div>
+                    <div class="input-group mb-2">
+                        <input type="file" class="form-control image-upload" data-id="@category.Id" accept="image/*" required>
+                    </div>
+                    @if (category.Products.Count == 0)
+                    {
+                        <a href="#" onclick="confirmDelete(@category.Id, '@category.Name')" class="btn btn-danger">@Resource.Delete</a>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="mb-4">
+    <div class="col-md-3">
+        <h4>@Resource.AddNewCategory</h4>
+        <div class="input-group">
+            <input type="text" class="form-control" id="NewCategoryName" placeholder="@Resource.EnterCategoryName">
+            <button class="btn btn-success" onclick="addCategory()">@Resource.Add</button>
+        </div>
+    </div>
+</div>

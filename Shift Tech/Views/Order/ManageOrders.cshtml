@@ -1,0 +1,97 @@
+﻿@using Shift_Tech.DbModels;
+@{
+}
+@{
+    Layout = "_AdminLayout";
+}
+@model List<Order>
+@using Resources;
+@section Styles{
+
+}
+@section scripts{
+    <script>
+        function deleteOrder(orderId) {
+            Swal.fire({
+                title: '@Resource.DeleteOrder',
+                text: `@Resource.DeleteOrderConfirm '${orderId}'?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: '@Resource.Delete',
+                showLoaderOnConfirm: true,
+                preConfirm: () => {
+                    return fetch("/Order/DeleteOrder", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(orderId)
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                Swal.fire({
+                                    title: '@Resource.Success',
+                                    icon: 'success'
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Error',
+                                    text: response.statusText,
+                                    icon: 'error'
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire({
+                                title: 'Network Error',
+                                text: error.message,
+                                icon: 'error'
+                            });
+                        });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            });
+        }
+    </script>
+}
+
+<div class="container">
+    <div class="row mt-5">
+        <div class="col-md-6">
+            <div>
+                <table class="table table-hover table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>@Resource.Receiver</th>
+                            <th>@Resource.Country</th>
+                            <th>@Resource.Email</th>
+                            <th>@Resource.CreationDate</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model)
+                        {
+                            <tr>
+                                <td>@order.Id</td>
+                                <td>@(order.FirstName + " " + order.LastName)</td>
+                                <td>@order.Country</td>
+                                <td>@order.Email</td>
+                                <td>@order.CreationDate.ToString("dd.MM.yyyy")</td>
+                                <td>
+                                    <div class="d-flex">
+                                        <a href="@Url.Action("EditOrderDetail", "Order", new { orderId = order.Id })" class="btn btn-outline-primary">@Resource.Edit</a>
+                                        <button onclick="deleteOrder(@order.Id)" class="btn btn-outline-warning">@Resource.Delete</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+</div>

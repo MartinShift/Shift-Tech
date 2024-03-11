@@ -1,0 +1,47 @@
+﻿@model Shift_Tech.DbModels.Product
+@{
+    var avg = Model.Reviews.Count == 0 ? 0 : Model.Reviews.Average(x => x.Rating);
+}
+@using Resources;
+<div class="col-lg-4 col-md-6 col-sm-6 pb-1"> 
+    <div class="justify-content-center product-item bg-light mb-4">
+        <div class="card-image-container justify-content-center product-img position-relative overflow-hidden d-flex align-items-center">
+            <img class="img-fluid w-100" src="@Model.MainImage?.Url()" alt="">
+            <div class="product-action">
+                <a class="btn btn-outline-dark btn-square add-to-cart-button" onclick="addToCart(@Model.Id)"><i class="fa fa-shopping-cart"></i></a>
+                <a class="btn btn-outline-dark btn-square" href="@Url.Action("ProductDetail", "Shop", new { id = Model.Id })"><i class="fa fa-search"></i></a>
+            </div>
+        </div>
+        <div class="text-center py-4">
+            <a class="h6 text-decoration-none text-truncate" href="">@Model.Name</a>
+            <div class="d-flex align-items-center justify-content-center mt-2">
+                <h5>$@Model.Price</h5>
+                @if (Model.Price != Model.PreviousPrice)
+                {
+                    <h6 class="text-muted ml-2"><del>$@Model.PreviousPrice</del></h6>
+                }
+            </div>
+            <div class="d-flex align-items-center justify-content-center mb-1 mt-1">
+        
+                @for (int i = 0; i < Convert.ToInt32(Math.Floor(avg)); i++)
+                {
+                    <small class="fa fa-star text-primary mr-1"></small>
+                }
+                @if (avg % 1 >= 0.4)
+                {
+                    <small class="fa fa-star-half-alt text-primary mr-1"></small>
+                }
+                @if (avg % 1 < 0.4 && avg % 1 != 0)
+                {
+                    <small class="far fa-star text-primary mr-1"></small>
+                }
+                @for (int i = 0; i < Convert.ToInt32(Math.Floor(5 - avg)); i++)
+                {
+                    <small class="far fa-star text-primary mr-1"></small>
+                }
+                <small>(@Model.Reviews.Count)</small>
+            </div>
+        </div>
+    </div>
+</div>
+

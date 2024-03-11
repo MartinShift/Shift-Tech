@@ -1,0 +1,111 @@
+﻿@model Shift_Tech.Models.Account.UserProfile
+
+@{
+    ViewData["Title"] = "User Profile";
+    Layout = "_AdminLayout";
+}
+
+@section Styles {
+    <style>
+
+    </style>
+}
+@using Resources;
+@section scripts{
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            console.log(`@Html.Raw(Model.AverageRating)`);
+        });
+    </script>
+}
+<div class="container">
+    <div class="profile-container">
+        <img src="@Model.LogoUrl" class="profile-image" />
+        <div class="profile-details justify-content-center">
+            <div style="display:flex; flex-direction:row; text-align:center" class="justify-content-center">
+                <h1>@Model.Name</h1>
+                @if (Model.IsSeller)
+                {
+                    <i title="Seller" class="fas fa-store" style="color:green;margin-left:10px"></i>
+                }
+                @if (Model.IsAdmin)
+                {
+                    <i title="Admin" class="fas fa-user" style="color:blue; margin-left:10px"></i>
+                }
+            </div>
+            <p>@Model.Login</p>
+            <div style="display:flex; flex-direction:row">
+                <h5 class="mr-2">@(Resource.AverageProductRating) :</h5>
+                <div class="text-primary mb-2">
+                    @for (int i = 0; i < Convert.ToInt32(Math.Floor(Model.AverageRating)); i++)
+                    {
+                        <small class="fa fa-star text-primary mr-1"></small>
+                    }
+                    @if (Model.AverageRating % 1 >= 0.4)
+                    {
+                        <small class="fa fa-star-half-alt text-primary mr-1"></small>
+                    }
+                    @if (Model.AverageRating % 1 < 0.4 && Model.AverageRating % 1 != 0)
+                    {
+                        <small class="far fa-star text-primary mr-1"></small>
+                    }
+                    @for (int i = 0; i < Convert.ToInt32(Math.Floor(5 - Model.AverageRating)); i++)
+                    {
+                        <small class="far fa-star text-primary mr-1"></small>
+                    }
+                </div>
+                <h4 class="ml-3">@(Model.AverageRating) / 5</h4>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container-fluid pt-5 pb-3 mt-5">
+    <h2 class="section-title position-relative text-uppercase mx-xl-5 mb-4"><span class="bg-secondary pr-3">@Resource.MostPopularUserProducts</span></h2>
+    <div class="row px-xl-5">
+        @foreach (var featured in Model.Products)
+        {
+            var feat = featured as Shift_Tech.DbModels.Product;
+            var avg = feat.Reviews.Count == 0 ? 0 : feat.Reviews.Average(x => x.Rating);
+            <div class="col-lg-3 col-md-4 col-sm-6 pb-1">
+                <div class="product-item bg-light mb-4">
+                    <div class="card-image-container justify-content-center product-img position-relative overflow-hidden d-flex align-items-center">
+                        <img class="img-fluid w-100" src="@feat.MainImage?.Url()" alt="">
+                        <div class="product-action">
+                            <a class="btn btn-outline-dark btn-square add-to-cart-button" onclick="addToCart(@feat.Id)"><i class="fa fa-shopping-cart"></i></a>
+                            <a class="btn btn-outline-dark btn-square" href="@Url.Action("ProductDetail", "Shop", new { id = feat.Id })"><i class="fa fa-search"></i></a>
+                        </div>
+                    </div>
+                    <div class="text-center py-4">
+                        <a class="h6 text-decoration-none text-truncate" href="">@feat.Name</a>
+                        <div class="d-flex align-items-center justify-content-center mt-2">
+                            <h5>$@feat.Price</h5> @if (feat.Price != feat.PreviousPrice)
+                            {
+                                <h6 class="text-muted ml-2"><del>@feat.PreviousPrice</del></h6>
+                            }
+                        </div>
+                        <div class="d-flex align-items-center justify-content-center mb-1">
+                            @for (int i = 0; i < Convert.ToInt32(Math.Floor(avg)); i++)
+                            {
+                                <small class="fa fa-star text-primary mr-1"></small>
+                            }
+                            @if (avg % 1 >= 0.4)
+                            {
+                                <small class="fa fa-star-half-alt text-primary mr-1"></small>
+                            }
+                            @if (avg % 1 < 0.4 && avg % 1 != 0)
+                            {
+                                <small class="far fa-star text-primary mr-1"></small>
+                            }
+                            @for (int i = 0; i < Convert.ToInt32(Math.Floor(5 - avg)); i++)
+                            {
+                                <small class="far fa-star text-primary mr-1"></small>
+                            }
+                            <small>(@feat.Reviews.Count)</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+

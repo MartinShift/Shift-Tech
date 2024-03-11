@@ -1,0 +1,169 @@
+﻿@{
+    
+    var isAuthenticated = User.Identity.IsAuthenticated;
+    var isAdmin = User.IsInRole("Admin");
+    var isSeller = User.IsInRole("Seller");
+}
+@using Resources;
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="Free HTML Templates" name="keywords">
+    <meta content="Free HTML Templates" name="description">
+    <link href="https://localhost:7166/css/more-styles.css" rel="stylesheet">
+    <link href="https://localhost:7166/img/small-logo.png" rel="icon">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+
+    <link href="https://localhost:7166/lib/animate/animate.min.css" rel="stylesheet">
+    <link href="https://localhost:7166/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+
+    <link href="https://localhost:7166/css/style.css" rel="stylesheet">
+    <title>@ViewData["Title"] - Shift Tech</title>
+    @RenderSection("styles", required: false)
+</head>
+<body>
+    <header>
+        <div class="container-fluid">
+            <div class="row bg-secondary py-1 px-xl-5">
+                <div class="col-lg-6 d-none d-lg-block">
+                    <div class="d-inline-flex align-items-center h-100">
+                        <a class="text-body mr-3" href="/">@Resource.Home</a>
+                        <a class="text-body mr-3" href="/Shop/ProductList">@Resource.Shop</a>
+                        <a class="text-body mr-3" href="/Contact">@Resource.Contact</a>
+           
+                    </div>
+                </div>
+                <div class="col-lg-6 text-center text-lg-right">
+                    <div class="d-inline-flex align-items-center">
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">@Resource.MyAccount</button>
+                            @if (!isAuthenticated)
+                            {
+                                <div class="dropdown-menu dropdown-menu-right">
+                                    <a class="dropdown-item" href="/Account/Login">@Resource.SignIn</a>
+                                    <a class="dropdown-item" href="/Account/Register">@Resource.SignUp</a>
+                                </div>
+                            }
+                            @if (isAuthenticated)
+                            {
+                                <div class="dropdown-menu dropdown-menu-right">
+                                    <a class="dropdown-item" href="/Account/UserProfile">@Resource.ViewProfile</a>
+                                    <a class="dropdown-item" href="/Account/EditProfile">@Resource.EditProfile</a>
+                                    <button class="dropdown-item" onclick="logout()">@Resource.Logout</button>
+                                    <hr>
+                                    @if (isSeller)
+                                    {
+                                        <a class="dropdown-item" href="/Category/EditCategories">@Resource.EditCategories</a>
+                                        <a class="dropdown-item" href="/Product/EditProducts">@Resource.EditProducts</a>
+                                    }
+                                    @if (!isSeller)
+                                    {
+                                        <a class="dropdown-item" href="/Contact/Request">@Resource.BecomeASeller</a>
+                                    }
+                                    @if (isAdmin)
+                                    {
+                                        <a class="dropdown-item" href="/Order/ManageOrders">@Resource.ManageOrders</a>
+                                        <a class="dropdown-item" href="/Request">@Resource.ManageRequests</a>
+                                    }
+                                    @if (!isAdmin)
+                                    {
+                                        <a class="dropdown-item" href="/Contact/Request">@Resource.BecomeAnAdmin</a>
+                                    }
+
+                                </div>
+                            }
+                        </div>
+                        <div class="btn-group ml-3">
+                            <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">@Resource.Language</button>
+                            <div class="dropdown-menu dropdown-menu-right">
+                                <button data-lang="en-US" id="dropdown-lang-item" class="dropdown-lang-item dropdown-item" type="button">En</button>
+                                <button data-lang="uk-UA" id="dropdown-lang-item" class="dropdown-lang-item dropdown-item" type="button">Ua</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-inline-flex align-items-center d-block d-lg-none">
+                        <a href=" @(User.Identity.IsAuthenticated ? "/Shop/Cart" : "Account/Login")" class="btn px-0 ml-2">
+                            <i class="fas fa-shopping-cart text-dark"></i>
+                            <span id="cartItemCount1" class="badge text-dark border border-dark rounded-circle" style="padding-bottom: 2px;">0</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @RenderSection("header",required:false)
+    </header>
+
+    <div class="container mt-4">
+        @RenderBody()
+    </div>
+
+    <footer>
+        @RenderSection("footer",required:false)
+     
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+    <script src="https://localhost:7166/lib/easing/easing.min.js"></script>
+    <script src="https://localhost:7166/lib/owlcarousel/owl.carousel.min.js"></script>
+
+    <script src="https://localhost:7166/mail/jqBootstrapValidation.min.js"></script>
+    <script src="https://localhost:7166/mail/contact.js"></script>
+
+
+    <script src="https://localhost:7166/js/main.js"></script>
+    <script>
+        function logout() {
+            fetch('/Account/Logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.href = '/Account/Login';
+                    } else {
+                        console.log(response)
+                        console.error('Logout failed');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+        document.addEventListener("DOMContentLoaded",function(){
+            $('.dropdown-lang-item').click(function () {
+                var selectedLang = $(this).data('lang');
+                console.log(selectedLang);
+                fetch('/Language/ChangeLanguage', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(selectedLang),
+                })
+                    .then(function (response) {
+                        if (response.ok) {
+                            location.reload();
+                        } else {
+                            console.error('Localization update failed:', response.statusText);
+                        }
+                    })
+                    .catch(function (error) {
+                        console.error('Localization update failed:', error);
+                    });
+            });
+        });
+    </script>
+    @RenderSection("Scripts",required:false);
+</body>
+</html>

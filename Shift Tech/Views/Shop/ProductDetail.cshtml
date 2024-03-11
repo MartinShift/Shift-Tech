@@ -1,0 +1,348 @@
+﻿@using Shift_Tech.DbModels;
+@using System;
+@using System.Linq;
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Product Detail";
+    var isReviewed = ViewData["IsReviewed"];
+    var reviews = ViewData["Reviews"] as List<Review>;
+    var isAdmin = User.IsInRole("admin");
+    var product = Model.Product as Product;
+    var avg = product.Reviews.Count == 0 ? 0 : product.Reviews.Average(x => x.Rating);
+}
+@section styles {
+
+}
+
+@using Resources;
+<!DOCTYPE html>
+<html lang="en">
+<body>
+
+    @section header {
+
+    }
+    <div class="container-fluid pb-5">
+        <div class="row px-xl-5">
+            <div class="col-lg-5 mb-30">
+                <div id="product-carousel" class="carousel slide" data-ride="carousel">
+                    <div class="carousel-inner bg-light">
+                        <div class="carousel-item active">
+                            <img class="w-100 h-100" src="@product.MainImage?.Url()" alt="Image">
+                        </div>
+                        @foreach(ImageFile image in product.Images)
+                        {
+                        <div class="carousel-item">
+                            <img class="w-100 h-100" src="@image.Url()" alt="Image">
+                        </div>
+                        }
+                    </div>
+                    <a class="carousel-control-prev" href="#product-carousel" data-slide="prev">
+                        <i class="fa fa-2x fa-angle-left text-dark"></i>
+                    </a>
+                    <a class="carousel-control-next" href="#product-carousel" data-slide="next">
+                        <i class="fa fa-2x fa-angle-right text-dark"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-7 h-auto mb-30">
+                <div class="h-100 bg-light p-30">
+                    <h3>@product.Name</h3>
+                    <div class="d-flex mb-3">
+                        <div class="text-primary mr-2">
+                            @for (int i = 0; i < Convert.ToInt32(Math.Floor(avg)); i++)
+                            {
+                                <small class="fa fa-star text-primary mr-1"></small>
+                            }
+                            @if (avg % 1 >= 0.4)
+                            {
+                                <small class="fa fa-star-half-alt text-primary mr-1"></small>
+                            }
+                            @if (avg % 1 < 0.4 && avg % 1 != 0)
+                            {
+                                <small class="far fa-star text-primary mr-1"></small>
+                            }
+                            @for (int i = 0; i < Convert.ToInt32(Math.Floor(5 - avg)); i++)
+                            {
+                                <small class="far fa-star text-primary mr-1"></small>
+                            }
+                        </div>
+                        <small class="pt-1">(@product.Reviews.Count Reviews)</small>
+                    </div>
+                    <h3 class="font-weight-semi-bold mb-4">$@product.Price</h3>
+                    <p class="mb-4">
+                       @product.ShortDescription
+                    </p>
+                    <div class="d-flex align-items-center mb-4 pt-2">
+                        <div class="input-group quantity mr-3" style="width: 130px;">
+                            <div class="input-group-btn">
+                                <button class="btn btn-primary btn-minus">
+                                    <i class="fa fa-minus"></i>
+                                </button>
+                            </div>
+                            <input type="text" class="form-control bg-secondary border-0 text-center" id="CartAmount" value="1" minvalue="1" maxvalue="@product.InStock">
+                            <div class="input-group-btn">
+                                <button class="btn btn-primary btn-plus">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary px-3" onclick="addToCart(@product.Id)">
+                            <i class="fa fa-shopping-cart mr-1"></i> @Resource.AddToCart
+                        </button> <span class="ml-1">(@product.InStock in stock)</span>
+                    </div>
+                    <div class="d-flex pt-2">
+                        <strong class="text-dark mr-2">@Resource.ShareOn:</strong>
+                        <div class="d-inline-flex">
+                            <a class="text-dark px-2" href="">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            <a class="text-dark px-2" href="">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                            <a class="text-dark px-2" href="">
+                                <i class="fab fa-linkedin-in"></i>
+                            </a>
+                            <a class="text-dark px-2" href="">
+                                <i class="fab fa-pinterest"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row px-xl-5">
+            <div class="col">
+                <div class="bg-light p-30">
+                    <div class="nav nav-tabs mb-4">
+                        <a class="nav-item nav-link text-dark active" data-toggle="tab" href="#tab-pane-1">@Resource.Description</a>
+                        <a class="nav-item nav-link text-dark" data-toggle="tab" href="#tab-pane-3">@Resource.Reviews (@product.Reviews.Count)</a>
+                    </div>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="tab-pane-1">
+                            <h4 class="mb-3">@Resource.ProductDescription</h4>
+                            <p>@product.Description</p>
+                        </div>
+                        <div class="tab-pane fade" id="tab-pane-3">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h4 class="mb-4">@product.Reviews.Count @Resource.ReviewsFor "@product.Name"</h4>
+                                    @foreach(Review review in reviews)
+                                    {
+
+                                    <div class="media mb-4">
+                                            <a href="@Url.Action("ViewProfile", "Account",new{userId = review.Publisher.Id})">
+                                                <img src="@review.Publisher.Logo?.Url()" alt="Image" class="img-fluid mr-3 mt-1" style="width: 45px;      border-radius: 50%;">
+                                            </a>
+                                        <div class="media-body">
+                                                <a href="@Url.Action("ViewProfile", "Account",new{userId =review.Publisher.Id})">
+                                                    <h6>@review.Publisher.VisibleName<small> - <i>@review.Date.ToString("dd/MM/yyyy")</i></small></h6>
+                                                </a>
+                                            <div class="text-primary mb-2">
+                                                    @for (int i = 0; i < Convert.ToInt32(review.Rating); i++)
+                                                    {
+                                                        <small class="fa fa-star text-primary mr-1"></small>
+                                                    }
+                                                    @if (review.Rating % 1 >= 0.4)
+                                                    {
+                                                        <small class="fa fa-star-half-alt text-primary mr-1"></small>
+                                                    }
+                                                    @for (int i = 0; i < Convert.ToInt32(5 - review.Rating); i++)
+                                                    {
+                                                        <small class="far fa-star text-primary mr-1"></small>
+                                                    }
+                                            </div>
+                                            <p>@review.Description</p>
+                                        </div>
+                                    </div>
+                                    }
+                                </div>
+                                @if (isReviewed.Equals(false))
+                                {
+                                    <div class="col-md-6">
+                                        <h4 class="mb-4">@Resource.LeaveAReview</h4>
+                                        <div class="d-flex my-3">
+                                            <p class="mb-0 mr-2">@Resource.YourRating * :</p>
+                                            <div class="text-primary rating">
+                                                    <input type="radio" name="rating" id="rating-5">
+                                                    <label for="rating-5"></label>
+                                                    <input type="radio" name="rating" id="rating-4">
+                                                    <label for="rating-4"></label>
+                                                    <input type="radio" name="rating" id="rating-3">
+                                                    <label for="rating-3"></label>
+                                                    <input type="radio" name="rating" id="rating-2">
+                                                    <label for="rating-2"></label>
+                                                    <input type="radio" name="rating" id="rating-1">
+                                                    <label for="rating-1"></label>
+                                            </div>
+                                        </div>
+                                            <div class="form-group">
+                                                <label for="message">@Resource.YourReview *</label>
+                                                <textarea id="message" cols="30" rows="5" class="form-control"></textarea>
+                                            </div>
+
+                                            <div class="form-group mb-0">
+                                                <button onclick="addReview(@product.Id)" class="btn btn-primary px-3">
+                                                    <i class="fa mr-1"></i>@Resource.LeaveAReview
+                                                </button>
+                                            </div>
+                                    
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid py-5">
+        <h2 class="section-title position-relative text-uppercase mx-xl-5 mb-4"><span class="bg-secondary pr-3">@Resource.YouMayAlsoLike</span></h2>
+        <div class="row px-xl-5">
+            <div class="col">
+                <div class="owl-carousel related-carousel">
+                    @foreach(Product item in Model.SameProducts){ 
+                    var itemavg = item.Reviews.Count == 0 ? 0 : item.Reviews.Average(x => x.Rating);
+                    <div class="product-item bg-light">
+                            <div class="card-image-container justify-content-center product-img position-relative overflow-hidden d-flex align-items-center">
+                            0.
+                            <img class="img-fluid w-100" src="@item.MainImage?.Url()" alt="" >
+                            <div class="product-action">
+                                    <a class="btn btn-outline-dark btn-square add-to-cart-button" onclick="addToCart(@item.Id)"><i class="fa fa-shopping-cart"></i></a>
+                                    <a class="btn btn-outline-dark btn-square" href="@Url.Action("ProductDetail", "Shop", new { id = item.Id })"><i class="fa fa-search"></i></a>
+
+                            </div>
+                        </div>
+                        <div class="text-center py-4">
+                            <a class="h6 text-decoration-none text-truncate" href="">@item.Name</a>
+                            <div class="d-flex align-items-center justify-content-center mt-2">
+                                    <h5>$@item.Price</h5>
+                                    @if (item.Price != item.PreviousPrice)
+                                {
+                                <h6 class="text-muted ml-2"><del>$@item.PreviousPrice</del>
+                                    </h6>
+                                }
+                            </div>
+                                <div class="d-flex align-items-center justify-content-center mb-1">
+
+                                    @for (int i = 0; i < Convert.ToInt32(itemavg); i++)
+                                    {
+                                        <small class="fa fa-star text-primary mr-1"></small>
+                                    }
+                                    @if (itemavg % 1 >= 0.4)
+                                    {
+                                        <small class="fa fa-star-half-alt text-primary mr-1"></small>
+                                    }
+                                    @for (int i = 0; i < Convert.ToInt32(5 - itemavg); i++)
+                                    {
+                                        <small class="far fa-star text-primary mr-1"></small>
+                                    }
+                                    <small>(@item.Reviews.Count)</small>
+                                </div>
+                        </div>
+                    </div>
+                    }
+                 </div>
+            </div>
+        </div>
+    </div>
+    @section footer {
+
+    }
+    @section Scripts {
+
+        <script>
+            function addToCart(productId) {
+                var cartamount = document.getElementById("CartAmount").value;
+                const productCount = parseInt(cartamount);
+
+                fetch("/Shop/AddToCart", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ productId: productId, productAmount: productCount })
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error("Network response was not ok");
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        document.getElementById("cartItemCount").textContent = data.cartItemCount;
+                    })
+                    .catch(error => {
+                        console.error("Fetch error:", error);
+                    });
+            }
+            const ratingInputs = document.querySelectorAll('.rating input');
+            var selectedRating = 0;
+            ratingInputs.forEach(input => {
+                input.addEventListener('change', () => {
+                    selectedRating = 5 - Array.from(ratingInputs).findIndex(radio => radio.checked);
+                    console.log(selectedRating);
+                });
+            });
+            function addReview(productId) {
+                var description = document.getElementById('message').value;
+                fetch("/Shop/AddReview", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ productId: productId, description: description, rating: selectedRating })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        Swal.fire({
+                            title: 'Review Added!',
+                            icon: 'success'
+                        });
+                    })
+                    .catch(error => {
+                        console.error("Fetch error:", error);
+                    });
+            }
+            document.addEventListener("DOMContentLoaded", function () {
+                const cartAmountInput = document.getElementById("CartAmount");
+                const minValue = 1;
+                const maxValue = @product.InStock;
+
+                cartAmountInput.addEventListener("input", function () {
+                    let quantity = parseInt(cartAmountInput.value);
+
+                    if (isNaN(quantity)) {
+                        quantity = minValue;
+                    } else if (quantity < minValue) {
+                        quantity = minValue;
+                    } else if (quantity > maxValue) {
+                        quantity = maxValue;
+                    }
+
+                    cartAmountInput.value = quantity;
+                });
+
+                document.querySelector(".btn-minus").addEventListener("click", function () {
+                    let quantity = parseInt(cartAmountInput.value);
+                    if (quantity < minValue) {
+                        quantity = minValue;
+                    }
+                    cartAmountInput.value = quantity;
+                });
+
+                document.querySelector(".btn-plus").addEventListener("click", function () {
+                    let quantity = parseInt(cartAmountInput.value);
+                    if (quantity > maxValue) {
+                        quantity = maxValue;
+                    }
+                    cartAmountInput.value = quantity;
+                });
+            });
+        </script>
+    }
+
+</body>
+
+</html>

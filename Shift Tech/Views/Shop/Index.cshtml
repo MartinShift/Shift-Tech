@@ -1,0 +1,241 @@
+﻿@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Home";
+    var isAdmin = User.IsInRole("admin");
+}
+@using Shift_Tech.DbModels
+@section styles {
+   
+}
+
+@section Scripts {
+    <script>
+        function addToCart(productId) {
+            const productCount = 1;
+
+            fetch("/Shop/AddToCart", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(
+                    {
+                        productId: productId,
+                        productAmount: productCount
+                    })
+            })
+                .then(response => {
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById("cartItemCount").textContent = data.cartItemCount;
+                })
+                .catch(error => {
+                    console.error("Fetch error:", error);
+                });
+        }
+    </script>
+}
+@section header {
+
+}
+@using Resources;
+<div class="container-ads mb-3">
+    <div class="row px-xl-5">
+        <div class="col-lg-ads">
+            <div id="header-carousel" class="carousel slide carousel-fade mb-30 mb-lg-0" data-ride="carousel">
+                <ol class="carousel-indicators">
+                    <li data-target="#header-carousel" data-slide-to="0" class="active"></li>
+                    <li data-target="#header-carousel" data-slide-to="1"></li>
+                    <li data-target="#header-carousel" data-slide-to="2"></li>
+                </ol>
+                <div class="carousel-inner">
+                    <div class="carousel-item position-relative active" style="height: 430px;">
+                        <img class="position-absolute w-100 h-100" src="img/carousel-1.jpg" style="object-fit: cover;">
+                        <div class="carousel-caption d-flex flex-column align-items-center justify-content-center">
+                            <div class="p-3" style="max-width: 700px;">
+                                <h1 class="display-4 text-white mb-3 animate__animated animate__fadeInDown">@Resource.FastestLaptops</h1>
+                                <a class="btn btn-outline-light py-2 px-4 mt-3 animate__animated animate__fadeInUp" href="/Shop/ProductList">@Resource.ShopNow</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-item position-relative" style="height: 430px;">
+                        <img class="position-absolute w-100 h-100" src="img/carousel-2.png" style="object-fit: cover;">
+                        <div class="carousel-caption d-flex flex-column align-items-center justify-content-center">
+                            <div class="p-3" style="max-width: 700px;">
+                                <h1 class="display-4 text-white mb-3 animate__animated animate__fadeInDown">@Resource.BestPrices</h1>
+                                <a class="btn btn-outline-light py-2 px-4 mt-3 animate__animated animate__fadeInUp" href="/Shop/ProductList">@Resource.ShopNow</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-item position-relative" style="height: 430px;">
+                        <img class="position-absolute w-100 h-100" src="img/carousel-3.jpg" style="object-fit: cover;">
+                        <div class="carousel-caption d-flex flex-column align-items-center justify-content-center">
+                            <div class="p-3" style="max-width: 700px;">
+                                <h1 class="display-4 text-white mb-3 animate__animated animate__fadeInDown">@Resource.ExclusiveDeals</h1>
+                                <a class="btn btn-outline-light py-2 px-4 mt-3 animate__animated animate__fadeInUp" href="/Shop/ProductList">@Resource.ShopNow</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid pt-5">
+    <div class="row px-xl-5 pb-3">
+        <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
+            <div class="d-flex align-items-center bg-light mb-4" style="padding: 30px;">
+                <h1 class="fa fa-check text-primary m-0 mr-3"></h1>
+                <h5 class="font-weight-semi-bold m-0">@Resource.QualityProduct</h5>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
+            <div class="d-flex align-items-center bg-light mb-4" style="padding: 30px;">
+                <h1 class="fa fa-shipping-fast text-primary m-0 mr-2"></h1>
+                <h5 class="font-weight-semi-bold m-0">@Resource.SecureShipping</h5>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
+            <div class="d-flex align-items-center bg-light mb-4" style="padding: 30px;">
+                <h1 class="fas fa-exchange-alt text-primary m-0 mr-3"></h1>
+                <h5 class="font-weight-semi-bold m-0">@Resource.Return14Day</h5>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
+            <div class="d-flex align-items-center bg-light mb-4" style="padding: 30px;">
+                <h1 class="fa fa-phone-volume text-primary m-0 mr-3"></h1>
+                <h5 class="font-weight-semi-bold m-0">@Resource.Support247</h5>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid pt-5">
+    <h2 class="section-title position-relative text-uppercase mx-xl-5 mb-4"><span class="bg-secondary pr-3">@Resource.FeaturedCategories</span></h2>
+    <div class="row px-xl-5 pb-3">
+        @foreach (var model in Model.FeaturedCategories){
+            var category = model as Shift_Tech.DbModels.Category;
+            <div class="col-lg-3 col-md-4 col-sm-6 pb-1">
+            <a class="text-decoration-none" href="@Url.Action("CategoryProductList","Shop",new{categoryId=category.Id})">
+                <div class="cat-item d-flex align-items-center mb-4">
+                    <div class="overflow-hidden" style="width: 100px; height: 100px;">
+                        <img class="img-fluid" src="@category.Image?.Url()" alt="">
+                    </div>
+                    <div class="flex-fill pl-3">
+                        <h6>@category.Name</h6>
+                        <small class="text-body">@category.Products.Count @Resource.Products</small>
+                    </div>
+                </div>
+            </a>
+        </div>
+        }
+    </div>
+</div>
+
+<div class="container-fluid pt-5 pb-3">
+    <h2 class="section-title position-relative text-uppercase mx-xl-5 mb-4"><span class="bg-secondary pr-3">@Resource.FeaturedProducts</span></h2>
+    <div class="row px-xl-5">
+        @foreach (var featured  in Model.FeaturedProducts)
+        {     
+            var feat = featured as Shift_Tech.DbModels.Product;
+            var avg = feat.Reviews.Count == 0 ? 0 : feat.Reviews.Average(x => x.Rating);
+            <div class="col-lg-3 col-md-4 col-sm-6 pb-1">
+            <div class="product-item bg-light mb-4">
+                    <div class="card-image-container justify-content-center product-img position-relative overflow-hidden d-flex align-items-center">
+                        <img class="img-fluid w-100" src="@feat.MainImage?.Url()" alt="">
+                    <div class="product-action">
+                            <a class="btn btn-outline-dark btn-square add-to-cart-button" onclick="addToCart(@feat.Id)"><i class="fa fa-shopping-cart"></i></a>
+                            <a class="btn btn-outline-dark btn-square" href="@Url.Action("ProductDetail", "Shop", new { id = feat.Id })"><i class="fa fa-search"></i></a>
+                    </div>
+                </div>
+                <div class="text-center py-4">
+                    <a class="h6 text-decoration-none text-truncate" href="">@feat.Name</a>
+                    <div class="d-flex align-items-center justify-content-center mt-2">
+                            <h5>$@feat.Price</h5> @if (feat.Price != feat.PreviousPrice)
+                            {
+                                <h6 class="text-muted ml-2"><del>@feat.PreviousPrice</del></h6>
+                            }
+                        </div>
+                    <div class="d-flex align-items-center justify-content-center mb-1">
+                            @for (int i = 0; i < Convert.ToInt32(Math.Floor(avg)); i++)
+                            {
+                                <small class="fa fa-star text-primary mr-1"></small>
+                            }
+                            @if (avg % 1 >= 0.4)
+                            {
+                                <small class="fa fa-star-half-alt text-primary mr-1"></small>
+                            }
+                            @if (avg % 1 < 0.4 && avg % 1 != 0)
+                            {
+                                <small class="far fa-star text-primary mr-1"></small>
+                            }
+                            @for (int i = 0; i < Convert.ToInt32(Math.Floor(5 - avg)); i++)
+                            {
+                                <small class="far fa-star text-primary mr-1"></small>
+                            }
+                        <small>(@feat.Reviews.Count)</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        }
+    </div>
+</div>
+
+<div class="container-fluid pt-5 pb-3">
+    <h2 class="section-title position-relative text-uppercase mx-xl-5 mb-4"><span class="bg-secondary pr-3">@Resource.RecentProducts</span></h2>
+    <div class="row px-xl-5">
+        @foreach (Product product in Model.RecentProducts)
+        {
+            var avg = product.Reviews.Count == 0 ? 0 : product.Reviews.Average(x => x.Rating);
+            <div class="col-lg-3 col-md-4 col-sm-6 pb-1">
+                <div class="product-item bg-light mb-4">
+                    <div class="card-image-container justify-content-center product-img position-relative overflow-hidden d-flex align-items-center">
+                        <img class="img-fluid w-100" src="@product.MainImage?.Url()" alt="">
+                        <div class="product-action">
+                            <a class="btn btn-outline-dark btn-square add-to-cart-button" onclick="addToCart(@product.Id)"><i class="fa fa-shopping-cart"></i></a>
+                            <a class="btn btn-outline-dark btn-square" href="@Url.Action("ProductDetail", "Shop", new { id = product.Id })"><i class="fa fa-search"></i></a>
+
+                        </div>
+                    </div>
+                    <div class="text-center py-4">
+                        <a class="h6 text-decoration-none text-truncate" href="">@product.Name</a>
+                        <div class="d-flex align-items-center justify-content-center mt-2">
+                            <h5>$@product.Price</h5> @if (product.Price != product.PreviousPrice)
+                            {
+                                <h6 class="text-muted ml-2"><del>@product.PreviousPrice</del></h6>
+                            }
+                        </div>
+                        <div class="d-flex align-items-center justify-content-center mb-1">
+                            <div class="d-flex align-items-center justify-content-center mb-1">
+                                @for (int i = 0; i < Convert.ToInt32(Math.Floor(avg)); i++)
+                                {
+                                    <small class="fa fa-star text-primary mr-1"></small>
+                                }
+                                @if (avg % 1 >= 0.4)
+                                {
+                                    <small class="fa fa-star-half-alt text-primary mr-1"></small>
+                                }
+                                @if (avg % 1 < 0.4 && avg % 1 != 0)
+                                {
+                                    <small class="far fa-star text-primary mr-1"></small>
+                                }
+                                @for (int i = 0; i < Convert.ToInt32(Math.Floor(5 - avg)); i++)
+                                {
+                                    <small class="far fa-star text-primary mr-1"></small>
+                                }
+                            </div>
+                            <small>(@product.Reviews.Count)</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section footer {
+
+}
