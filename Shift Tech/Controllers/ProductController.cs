@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Shift_Tech.Models.Categories;
 using Microsoft.AspNetCore.Authorization;
+using Azure.Storage.Blobs;
 
 namespace Shift_Tech.Controllers
 {
@@ -16,12 +17,14 @@ namespace Shift_Tech.Controllers
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly IWebHostEnvironment _webHostEnvironment;
-        public ProductController(ShopDbContext context, UserManager<User> userManager, SignInManager<User> signInManager, IWebHostEnvironment webHostEnvironment)
+        private readonly IConfiguration _configuration;
+        public ProductController(ShopDbContext context, UserManager<User> userManager, SignInManager<User> signInManager, IWebHostEnvironment webHostEnvironment, IConfiguration configuration)
         {
             _context = context;
             _userManager = userManager;
             _signInManager = signInManager;
             _webHostEnvironment = webHostEnvironment;
+            _configuration = configuration;
         }
         public List<Product> GetProducts() => _context.Products
         .Include(x => x.Category)
@@ -128,11 +131,32 @@ namespace Shift_Tech.Controllers
         [HttpPost("/Product/Uploads/{id}")]
         public async Task<IActionResult> Upload(IFormFile file, int id)
         {
+            var connectionString = _configuration.GetValue<string>("Azure:BlobStorage:ConnectionString");
+
+            BlobServiceClient blobServiceClient = new BlobServiceClient(connectionString);
+
+            string containerName = "images";
+            BlobContainerClient containerClient;
+
+            if(blobServiceClient.GetBlobContainers().Any(x => x.Name == containerName))
+            {
+                containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+            }
+            else
+            {
+                containerClient = blobServiceClient.CreateBlobContainer(containerName);
+            }
+
+            var blobClient = containerClient.GetBlobClient(file.FileName + "_" + Guid.NewGuid().ToString());
+            using (var stream = file.OpenReadStream())
+                {
+                    await blobClient.UploadAsync(stream);
+                }
+
             var current = _context.Products.First(x => x.Id == id);
-            var filename = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
             var dbFile = new ImageFile()
             {
-                Filename = filename,
+                Filename = blobClient.Uri.AbsoluteUri,
                 RootDirectory = "Uploads",
             };
             var localFilename =
@@ -147,6 +171,9 @@ namespace Shift_Tech.Controllers
             await _context.SaveChangesAsync();
             return Ok(dbFile);
         }
+
+
+
         [HttpPost("/Product/UploadsMultiple/{id}")]
         public async Task<IActionResult> UploadMultiple(ICollection<IFormFile> files, int id)
         {

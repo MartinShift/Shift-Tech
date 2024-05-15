@@ -30,7 +30,7 @@ namespace Shift_Tech.Models.Startup
             services.AddDbContext<ShopDbContext>((options) =>
             {
                 SQLitePCL.raw.SetProvider(new SQLitePCL.SQLite3Provider_e_sqlite3());
-                options.UseSqlite("Data Source=D:\\Mein progectos\\Shift Tech\\Shift Tech\\ShopDb.db");
+                options.UseSqlite("Data Source=D:\\git-repos\\Shift-Tech\\Shift Tech\\ShopDb.db");
             });
             services.AddControllersWithViews();
 

@@ -18,7 +18,6 @@ public class LanguageController : Controller
     [HttpPost]
     public IActionResult ChangeLanguage([FromBody] string selectedLanguage)
     {
-        // Store the selected language in a cookie for persistence.
         Response.Cookies.Append("SelectedLanguage", selectedLanguage, new CookieOptions
         {
             Expires = DateTimeOffset.Now.AddYears(1),

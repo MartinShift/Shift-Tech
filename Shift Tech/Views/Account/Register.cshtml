@@ -1,125 +1,53 @@
-﻿@model Shift_Tech.Models.Account.RegisterModel;
-@{
-    ViewData["Title"] = "Register";
-}
+﻿@model Shift_Tech.Models.Account.RegisterModel
 
-@section styles{
-
-
-}
-@using Resources;
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css">
-<style></style>
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-4">
-            <h2 class="mt-5 mb-3">@Resource.SignUp</h2>
-            <div asp-validation-summary="All" class="text-danger"></div>
-            <div class="mb-3">
-                <label for="Login" class="form-label">@Resource.Login</label>
-                <input type="text" id="Login" name="Login" class="form-control" asp-for="Login" required autofocus>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Register</h2>
+        <form asp-action="Register" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="Login">Login</label>
+                <input type="text" class="form-control" id="Login" name="Login" asp-for="Login" required>
             </div>
-            <div class="mb-3">
-                <label for="Email" class="form-label">@Resource.Email</label>
-                <input type="email" id="Email" name="Email" class="form-control" asp-for="Email" required>
+            <div class="form-group">
+                <label for="Name">Name</label>
+                <input type="text" class="form-control" id="Name" name="Name" asp-for="Name" required>
             </div>
-            <div class="mb-3">
-                <label for="Password" class="form-label">@Resource.Password</label>
-                <input type="password" id="Password" name="Password" class="form-control" asp-for="Password" required>
+            <div class="form-group">
+                <label for="Email">Email</label>
+                <input type="email" class="form-control" id="Email" name="Email" asp-for="Email" required>
             </div>
-            <div class="mb-3">
-                <label for="ConfirmPassword" class="form-label">@Resource.ConfirmPassword</label>
-                <input type="password" id="ConfirmPassword" name="ConfirmPassword" class="form-control" asp-for="ConfirmPassword" required>
+            <div class="form-group">
+                <label for="PhoneNumber">Phone Number</label>
+                <input type="tel" class="form-control" id="PhoneNumber" name="PhoneNumber" asp-for="PhoneNumber">
             </div>
-            <div class="mb-3">
-                <button type="button" class="btn btn-primary" id="register-button">@Resource.SignIn</button>
+            <div class="form-group">
+                <label for="City">City</label>
+                <input type="text" class="form-control" id="City" name="City" asp-for="City">
             </div>
-            <div class="mb-3">
-                <div class="row">
-                    <form method="post" action="/GoogleLogin">
-                        <div class="row">
-                            <button type="submit" class="btn btn-outline-dark" role="button" style="text-transform:none">
-                                <img width="20px" style="margin-bottom:3px; margin-right:5px" alt="Google sign-in" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png" />
-                               @Resource.RegisterWithGoogle
-                            </button>
-                        </div>
-                    </form>
-                </div>
+            <div class="form-group">
+                <label for="Country">Country</label>
+                <input type="text" class="form-control" id="Country" name="Country" asp-for="Country">
             </div>
-            <p class="mb-0">@Resource.HaveAnAccount <a class="btn btn-link" href="/Account/Login">@Resource.SignUp</a></p>
-        </div>
+            <div class="form-group">
+                <label for="Address">Address</label>
+                <input type="text" class="form-control" id="Address" name="Address" asp-for="Address">
+            </div>
+            <div class="form-group">
+                <label for="Password">Password</label>
+                <input type="password" class="form-control" id="Password" name="Password" asp-for="Password" required>
+            </div>
+            <div class="form-group">
+                <label for="UploadedAvatar">Avatar</label>
+                <input type="file" class="form-control-file" id="UploadedAvatar" name="UploadedAvatar" asp-for="UploadedAvatar">
+            </div>
+            <button type="submit" class="btn btn-primary">Register</button>
+        </form>
     </div>
-</div>
-
-
-@section Scripts{
-
-}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
-
-<script>
-    $(document).ready(function () {
-        $("#register-button").click(function () {
-            const login = $("#Login").val();
-            const email = $("#Email").val();
-            const password = $("#Password").val();
-            const confirmPassword = $("#ConfirmPassword").val();
-
-            // Perform client-side validation if needed
-            if (!login || !email || !password || password !== confirmPassword) {
-                Swal.fire({
-                    icon: 'error',
-                    title: '@Resource.ValidationError',
-                    text: '@Resource.CredentialsError',
-                });
-                return;
-            }
-
-            const registrationData = {
-                Login: login,
-                Email: email,
-                Password: password,
-                ConfirmPassword: confirmPassword
-            };
-            console.log(registrationData)
-
-
-            fetch('/Account/Register', {
-                method: 'POST',
-                body: JSON.stringify(registrationData),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.message == "Success!") {
-                        console.log(data);
-                        Swal.fire({
-                            icon: 'success',
-                            title: '@Resource.Success',
-                            text: data.message,
-                        }).then(() => {
-                            window.location.href = '/Account/Login';
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: data.errors.join('\n\n'), // Display the error message from the JSON response
-                        });
-                    }
-                })
-                .catch(error => {
-
-                    console.error('Error:', error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'An error occurred. Please try again.',
-                    });
-                });
-        });
-    });
-</script>
+</body>
+</html>

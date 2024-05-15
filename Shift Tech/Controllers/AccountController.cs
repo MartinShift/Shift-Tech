@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Shift_Tech.DbModels;
 using Shift_Tech.Models.Account;
 using System.Security.Claims;
@@ -15,13 +18,15 @@ namespace Shift_Tech.Controllers
         private readonly SignInManager<User> _signInManager;
         private readonly ShopDbContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;
-        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, ShopDbContext shopDbContext, IWebHostEnvironment webHostEnvironment, RoleManager<IdentityRole<int>> roleManager)
+        private readonly IConfiguration _configuration;
+        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, ShopDbContext shopDbContext, IWebHostEnvironment webHostEnvironment, RoleManager<IdentityRole<int>> roleManager, IConfiguration configuration)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _context = shopDbContext;
             _webHostEnvironment = webHostEnvironment;
             _roleManager = roleManager;
+            _configuration = configuration;
         }
         public IQueryable<Product> GetProducts() => _context.Products
         .Include(x => x.Category)
@@ -189,7 +194,7 @@ namespace Shift_Tech.Controllers
                 Login = user.UserName,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
-                LogoUrl = user.Logo == null ? "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1200px-No-Image-Placeholder.svg.png " : user.Logo.Url(),
+                LogoUrl = user.Logo == null ? "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1200px-No-Image-Placeholder.svg.png " : user.Logo.Filename,
                 IsAdmin = User.IsInRole("Admin"),
                 IsSeller = User.IsInRole("Seller"),
                 AverageRating = averageRating,
@@ -220,33 +225,61 @@ namespace Shift_Tech.Controllers
                 Login = user.UserName,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
-                LogoUrl = user.Logo == null ? "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1200px-No-Image-Placeholder.svg.png " : user.Logo.Url()
+                LogoUrl = user.Logo == null ? "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1200px-No-Image-Placeholder.svg.png " : user.Logo.Filename
             };
 
             return View(userProfile);
         }
+
+
+
+
         [HttpPost("/Account/Uploads/")]
         public async Task<IActionResult> Upload(IFormFile file)
         {
+
+            var connectionString = _configuration.GetValue<string>("Azure:BlobStorage:ConnectionString");
+
+            BlobServiceClient blobServiceClient = new BlobServiceClient(connectionString);
+
+            string containerName = "images";
+            BlobContainerClient containerClient;
+
+            if (blobServiceClient.GetBlobContainers().Any(x => x.Name == containerName))
+            {
+                containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+            }
+            else
+            {
+                containerClient = blobServiceClient.CreateBlobContainer(containerName);
+            }
+
+            var blobClient = containerClient.GetBlobClient(file.FileName + "_" + Guid.NewGuid().ToString());
+            using (var stream = file.OpenReadStream())
+            {
+                await blobClient.UploadAsync(stream);
+            }
+
             var usr = await _userManager.GetUserAsync(User);
             var user = _context.Users.Include(x => x.Logo).First(x => x.UserName == usr.UserName);
             var filename = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
             var dbFile = new ImageFile()
             {
-                Filename = filename,
+                Filename = blobClient.Uri.AbsoluteUri,
                 RootDirectory = "Uploads",
             };
-            var localFilename =
-                Path.Combine(_webHostEnvironment.WebRootPath, dbFile.RootDirectory, dbFile.Filename);
-            using (var localFile = System.IO.File.Open(localFilename, FileMode.OpenOrCreate))
-            {
-                await file.CopyToAsync(localFile);
-            }
             _context.Images.Add(dbFile);
             user.Logo = dbFile;
             await _context.SaveChangesAsync();
             return Ok(new { url = dbFile.Url() });
         }
+
+
+
+
+
+
+
         [HttpPost]
         public async Task<IActionResult> EditProfile([FromBody] UserProfile model)
         {
@@ -318,6 +351,12 @@ namespace Shift_Tech.Controllers
             await _signInManager.SignInAsync(user, isPersistent: false);
 
             return RedirectToAction("Index", "Shop");
+        }
+
+        [HttpGet("/Account/AccessDenied")] 
+        public IActionResult AccessDenied()
+        {
+            return View();
         }
     }
 }

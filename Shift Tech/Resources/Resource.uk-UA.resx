@@ -273,6 +273,9 @@
   <data name="Email" xml:space="preserve">
     <value>Електрона пошта</value>
   </data>
+  <data name="Email Does not Exist." xml:space="preserve">
+    <value>Email Does not Exist.</value>
+  </data>
   <data name="EnableSale" xml:space="preserve">
     <value>Увімкнути знижку</value>
   </data>
@@ -357,6 +360,9 @@
   <data name="InStock" xml:space="preserve">
     <value>В Асортименті</value>
   </data>
+  <data name="Invalid Email." xml:space="preserve">
+    <value>Invalid Email.</value>
+  </data>
   <data name="Ireland" xml:space="preserve">
     <value>Ірландія</value>
   </data>
@@ -437,6 +443,9 @@
   </data>
   <data name="Newsletter" xml:space="preserve">
     <value>Розсилка</value>
+  </data>
+  <data name="No Such Login Exists" xml:space="preserve">
+    <value>No Such Login Exists</value>
   </data>
   <data name="OrderTotal" xml:space="preserve">
     <value>Всього до замовлення</value>
@@ -621,11 +630,20 @@
   <data name="Sweden" xml:space="preserve">
     <value>Успіх!</value>
   </data>
+  <data name="The email is already in use." xml:space="preserve">
+    <value>The email is already in use.</value>
+  </data>
+  <data name="The login is already in use." xml:space="preserve">
+    <value>The login is already in use.</value>
+  </data>
   <data name="Total" xml:space="preserve">
     <value>Всього</value>
   </data>
   <data name="UnitedStates" xml:space="preserve">
     <value>Сполучені Штати Америки</value>
+  </data>
+  <data name="User not found" xml:space="preserve">
+    <value>User not found</value>
   </data>
   <data name="UserImage" xml:space="preserve">
     <value>Картинка Користувача</value>
@@ -635,6 +653,9 @@
   </data>
   <data name="ViewProfile" xml:space="preserve">
     <value>Переглянути Профіль</value>
+  </data>
+  <data name="Wrong Password!" xml:space="preserve">
+    <value>Wrong Password!</value>
   </data>
   <data name="YouMayAlsoLike" xml:space="preserve">
     <value>На основі цього товару</value>
